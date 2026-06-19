@@ -1,4 +1,5 @@
-=== BD Partial COD Gateway (bKash/Nagad) ===
+ BD Partial COD Gateway (bKash/Nagad)
+--------
 Contributors: almahmud
 Tags: woocommerce, payment gateway, cash on delivery, bkash, nagad, bangladesh, partial payment
 Requires at least: 6.0
@@ -10,7 +11,7 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 Collect a partial advance (equal to the delivery charge) via bKash/Nagad to confirm Cash-on-Delivery orders. Reduce fake COD orders.
 
-== Description ==
+## Description 
 
 A WooCommerce payment gateway built for the Bangladeshi market. Instead of taking the full amount, the customer pays a small **advance equal to the order's delivery charge** through bKash or Nagad to confirm a Cash-on-Delivery order. The remaining balance is collected as cash on delivery.
 
@@ -35,14 +36,14 @@ A WooCommerce payment gateway built for the Bangladeshi market. Instead of takin
 * High-Performance Order Storage (HPOS) compatible.
 * Theme-overridable payment template and i18n-ready strings.
 
-== Installation ==
+##  Installation 
 
 1. Upload the plugin folder to `/wp-content/plugins/` and activate it.
 2. Go to WooCommerce → Settings → Payments → "BD Partial COD (bKash/Nagad)".
 3. Enable the gateway, set your bKash/Nagad numbers, upload QR images, and set a fallback advance amount.
 4. Save.
 
-== Frequently Asked Questions ==
+## Frequently Asked Questions
 
 = Does this verify payments automatically? =
 No. Verification is manual by design — you confirm each advance from the order screen. No bKash/Nagad API credentials are needed.
@@ -57,3 +58,6 @@ v1 targets the classic (shortcode) checkout. Block (Store API) support is planne
 
 = 1.0.0 =
 * Initial release.
+
+= 1.4.0 =
+* standalone page for payment proccess.
