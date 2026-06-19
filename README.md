@@ -5,7 +5,7 @@ Tags: woocommerce, payment gateway, cash on delivery, bkash, nagad, rocket, bang
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.5.0
+Stable tag: 1.5.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -74,6 +74,12 @@ No. Set **Reuse numbers** on the full gateway to either *Copy once* (fills its f
 The plugin targets the classic (shortcode) checkout. Block (Store API) support is planned.
 
 == Changelog ==
+
+= 1.5.2 =
+* Fix: the Texts / Labels fields now always show the (editable) default wording, even if an earlier save had stored them empty.
+
+= 1.5.1 =
+* Build: produce a spec-compliant ZIP (forward-slash paths) so WordPress can install/overwrite it correctly. Added a native `build.ps1`/`build.cmd` for Windows.
 
 = 1.5.0 =
 * New **BD Manual Mobile Payment (full)** gateway that collects the full order total (shares the partial gateway's workflow via a common base class).

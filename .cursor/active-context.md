@@ -1,5 +1,5 @@
 > **BrainSync Context Pumper** 🧠
-> Dynamically loaded for active file: `build.sh` (Domain: **Generic Logic**)
+> Dynamically loaded for active file: `woo-bd-partial-cod.php` (Domain: **Generic Logic**)
 
 ### 📐 Generic Logic Conventions & Fixes
 - **[discovery] discovery in .gitignore**: File updated (external): .gitignore

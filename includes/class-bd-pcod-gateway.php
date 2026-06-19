@@ -49,6 +49,28 @@ abstract class BD_PCOD_Gateway_Base extends WC_Payment_Gateway {
 	}
 
 	/**
+	 * Read a setting, but fall back to the mode-aware default for empty "text_*"
+	 * fields so the admin always sees editable default wording (even if an earlier
+	 * save stored an empty value, which would otherwise suppress the field default).
+	 *
+	 * @param string $key         Setting key.
+	 * @param mixed  $empty_value Value to treat as empty.
+	 * @return mixed
+	 */
+	public function get_option( $key, $empty_value = null ) {
+		$value = parent::get_option( $key, $empty_value );
+
+		if ( ( '' === $value || null === $value ) && 0 === strpos( $key, 'text_' ) ) {
+			$default = BD_PCOD_Helpers::default_text( substr( $key, 5 ), $this->mode );
+			if ( '' !== $default ) {
+				return $default;
+			}
+		}
+
+		return $value;
+	}
+
+	/**
 	 * Default checkout title for this gateway.
 	 *
 	 * @return string

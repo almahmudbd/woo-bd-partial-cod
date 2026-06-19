@@ -45,18 +45,18 @@ for item in "${INCLUDE[@]}"; do
 	fi
 done
 
-# No `zip` binary on Windows Git Bash — use PowerShell's Compress-Archive.
-ROOT_WIN="$(pwd -W 2>/dev/null || pwd)"
-if command -v powershell >/dev/null 2>&1; then
-	powershell -NoProfile -Command \
-		"Compress-Archive -Path '$ROOT_WIN/$STAGE' -DestinationPath '$ROOT_WIN/$ZIP' -Force"
-elif command -v zip >/dev/null 2>&1; then
+# Use the `zip` binary (writes spec-compliant forward-slash paths).
+# NOTE: do NOT fall back to Windows PowerShell's Compress-Archive — it writes
+# back-slash paths inside the ZIP, which WordPress cannot extract ("Plugin file
+# does not exist"). On Windows, run build.ps1 / build.cmd instead.
+if command -v zip >/dev/null 2>&1; then
 	( cd "$BUILD_DIR" && zip -rq "../$ZIP" "$SLUG" )
-else
-	echo "❌ Neither PowerShell nor zip is available to create the archive." >&2
 	rm -rf "$BUILD_DIR"
+	echo "✅ Created $ZIP"
+else
+	rm -rf "$BUILD_DIR"
+	echo "❌ No 'zip' binary found." >&2
+	echo "   On Windows, run:  powershell -ExecutionPolicy Bypass -File build.ps1" >&2
+	echo "   (or just double-click build.cmd)" >&2
 	exit 1
 fi
-
-rm -rf "$BUILD_DIR"
-echo "✅ Created $ZIP"

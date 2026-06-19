@@ -3,7 +3,7 @@
  * Plugin Name:       BD Partial COD Gateway
  * Plugin URI:        https://github.com/almahmud/custom-gateway
  * Description:        Collect a partial advance (equal to the delivery charge) or the full order total via bKash/Nagad/Rocket. Manual admin verification, no API keys required.
- * Version:           1.5.0
+ * Version:           1.5.2
  * Author:            almahmud
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -19,7 +19,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'BD_PCOD_VERSION', '1.5.0' );
+define( 'BD_PCOD_VERSION', '1.5.2' );
 define( 'BD_PCOD_FILE', __FILE__ );
 define( 'BD_PCOD_PATH', plugin_dir_path( __FILE__ ) );
 define( 'BD_PCOD_URL', plugin_dir_url( __FILE__ ) );
