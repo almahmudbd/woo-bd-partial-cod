@@ -76,16 +76,23 @@ class BD_PCOD_Payment_Page {
 			exit;
 		}
 
-		$methods        = BD_PCOD_Helpers::get_enabled_methods();
+		$gateway_id     = $order->get_payment_method();
+		$methods        = BD_PCOD_Helpers::get_enabled_methods( $gateway_id );
 		$default_method = isset( $methods['bkash_merchant'] ) ? 'bkash_merchant' : ( $methods ? array_key_first( $methods ) : '' );
 		$nonce          = wp_create_nonce( 'bd_pcod_submit' );
+		$collect_trxid  = BD_PCOD_Helpers::get_setting( $gateway_id, 'collect_trxid', 'off' );
+		$sender_mode    = BD_PCOD_Helpers::get_setting( $gateway_id, 'sender_number_mode', 'full' );
 
 		$context = array(
 			'order'          => $order,
+			'gateway_id'     => $gateway_id,
+			'icon'           => esc_url_raw( (string) BD_PCOD_Helpers::get_setting( $gateway_id, 'icon_url', '' ) ),
 			'advance'        => (float) $order->get_meta( BD_PCOD_Helpers::META_ADVANCE ),
 			'remaining'      => (float) $order->get_meta( BD_PCOD_Helpers::META_REMAINING ),
 			'methods'        => $methods,
 			'default_method' => $default_method,
+			'collect_trxid'  => $collect_trxid,
+			'sender_mode'    => $sender_mode,
 			'nonce'          => $nonce,
 			'return_url'     => $order->get_checkout_order_received_url(),
 			'js_data'        => array(
@@ -93,7 +100,11 @@ class BD_PCOD_Payment_Page {
 				'nonce'        => $nonce,
 				'copied'       => __( 'Copied!', 'woo-bd-partial-cod' ),
 				'copy'         => __( 'Copy', 'woo-bd-partial-cod' ),
+				'senderMode'   => $sender_mode,
+				'trxidMode'    => $collect_trxid,
 				'invalidPhone' => __( 'Please enter a valid 11-digit mobile number (e.g. 01XXXXXXXXX).', 'woo-bd-partial-cod' ),
+				'invalidDigits' => __( 'Please enter at least the last 3 digits of your sender number.', 'woo-bd-partial-cod' ),
+				'requiredTrxid' => __( 'Please enter the transaction ID (TrxID).', 'woo-bd-partial-cod' ),
 				'required'     => __( 'Please fill in all required fields.', 'woo-bd-partial-cod' ),
 				'leaveWarning' => __( 'You have not completed your payment yet. If you leave now, your order will stay unconfirmed.', 'woo-bd-partial-cod' ),
 			),
@@ -118,27 +129,28 @@ class BD_PCOD_Payment_Page {
 			return;
 		}
 
-		$status  = $order->get_meta( BD_PCOD_Helpers::META_STATUS );
-		$pay_url = BD_PCOD_Helpers::get_pay_url( $order );
+		$status     = $order->get_meta( BD_PCOD_Helpers::META_STATUS );
+		$pay_url    = BD_PCOD_Helpers::get_pay_url( $order );
+		$gateway_id = $order->get_payment_method();
 
 		echo '<section class="bd-pcod-payment" id="bd-pcod-payment">';
 
 		if ( BD_PCOD_Helpers::STATUS_VERIFIED === $status ) {
 			echo '<div class="bd-pcod-alert bd-pcod-alert--success">';
-			esc_html_e( 'Your advance payment has been verified. Your order is confirmed!', 'woo-bd-partial-cod' );
+			echo esc_html( BD_PCOD_Helpers::get_text( $gateway_id, 'status_verified' ) );
 			echo '</div>';
 		} elseif ( in_array( $status, array( BD_PCOD_Helpers::STATUS_SUBMITTED, BD_PCOD_Helpers::STATUS_VERIFIED ), true ) ) {
 			echo '<div class="bd-pcod-alert bd-pcod-alert--info">';
-			esc_html_e( 'Your payment details have been submitted and are awaiting verification. We will confirm your order shortly.', 'woo-bd-partial-cod' );
+			echo esc_html( BD_PCOD_Helpers::get_text( $gateway_id, 'status_submitted' ) );
 			echo '</div>';
 		} else {
 			echo '<div class="bd-pcod-alert bd-pcod-alert--warning">';
-			esc_html_e( 'Your order is NOT confirmed yet — the advance payment is still pending.', 'woo-bd-partial-cod' );
+			echo esc_html( BD_PCOD_Helpers::get_text( $gateway_id, 'status_pending' ) );
 			echo '</div>';
 			printf(
 				'<p><a href="%1$s" class="button alt">%2$s</a></p>',
 				esc_url( $pay_url ),
-				esc_html__( 'Pay the advance now', 'woo-bd-partial-cod' )
+				esc_html( BD_PCOD_Helpers::get_text( $gateway_id, 'pay_button' ) )
 			);
 		}
 
@@ -175,7 +187,7 @@ class BD_PCOD_Payment_Page {
 			echo "\n" . wp_strip_all_tags(
 				sprintf(
 					/* translators: 1: amount, 2: url */
-					__( 'Please pay the advance of %1$s to confirm your order, then submit your payment details here: %2$s', 'woo-bd-partial-cod' ),
+					__( 'Please pay %1$s to confirm your order, then submit your payment details here: %2$s', 'woo-bd-partial-cod' ),
 					$advance,
 					$url
 				)
@@ -186,7 +198,7 @@ class BD_PCOD_Payment_Page {
 		echo '<div style="margin:0 0 24px;padding:12px 16px;border:1px solid #e0a800;background:#fff8e5;border-radius:6px;">';
 		printf(
 			/* translators: 1: amount, 2: url */
-			wp_kses_post( __( 'Please pay the advance of <strong>%1$s</strong> to confirm your order, then <a href="%2$s">submit your payment details here</a>.', 'woo-bd-partial-cod' ) ),
+			wp_kses_post( __( 'Please pay <strong>%1$s</strong> to confirm your order, then <a href="%2$s">submit your payment details here</a>.', 'woo-bd-partial-cod' ) ),
 			wp_kses_post( $advance ),
 			esc_url( $url )
 		);
@@ -203,6 +215,7 @@ class BD_PCOD_Payment_Page {
 		$order_key = isset( $_POST['order_key'] ) ? sanitize_text_field( wp_unslash( $_POST['order_key'] ) ) : '';
 		$method    = isset( $_POST['method'] ) ? sanitize_key( wp_unslash( $_POST['method'] ) ) : '';
 		$sender    = isset( $_POST['sender_number'] ) ? wp_unslash( $_POST['sender_number'] ) : '';
+		$trxid_raw = isset( $_POST['trxid'] ) ? sanitize_text_field( wp_unslash( $_POST['trxid'] ) ) : '';
 
 		$order = $order_id ? wc_get_order( $order_id ) : false;
 
@@ -223,28 +236,45 @@ class BD_PCOD_Payment_Page {
 			);
 		}
 
-		$methods = BD_PCOD_Helpers::get_enabled_methods();
+		$gateway_id = $order->get_payment_method();
+
+		$methods = BD_PCOD_Helpers::get_enabled_methods( $gateway_id );
 		if ( ! isset( $methods[ $method ] ) ) {
 			wp_send_json_error( array( 'message' => __( 'Please choose a valid payment method.', 'woo-bd-partial-cod' ) ), 400 );
 		}
 
-		$sender = BD_PCOD_Helpers::sanitize_bd_phone( $sender );
+		$sender_mode = BD_PCOD_Helpers::get_setting( $gateway_id, 'sender_number_mode', 'full' );
+		$sender      = BD_PCOD_Helpers::sanitize_sender_number( $sender, $sender_mode );
 		if ( false === $sender ) {
-			wp_send_json_error( array( 'message' => __( 'Please enter a valid 11-digit mobile number (e.g. 01XXXXXXXXX).', 'woo-bd-partial-cod' ) ), 400 );
+			$message = ( 'partial' === $sender_mode )
+				? __( 'Please enter at least the last 3 digits of your sender number.', 'woo-bd-partial-cod' )
+				: __( 'Please enter a valid 11-digit mobile number (e.g. 01XXXXXXXXX).', 'woo-bd-partial-cod' );
+			wp_send_json_error( array( 'message' => $message ), 400 );
+		}
+
+		// Transaction ID: required, optional, or not collected.
+		$collect_trxid = BD_PCOD_Helpers::get_setting( $gateway_id, 'collect_trxid', 'off' );
+		$trxid         = ( 'off' === $collect_trxid ) ? '' : $trxid_raw;
+		if ( 'required' === $collect_trxid && '' === $trxid ) {
+			wp_send_json_error( array( 'message' => __( 'Please enter the transaction ID (TrxID).', 'woo-bd-partial-cod' ) ), 400 );
 		}
 
 		// Persist the submission.
 		$order->update_meta_data( BD_PCOD_Helpers::META_METHOD, $method );
 		$order->update_meta_data( BD_PCOD_Helpers::META_SENDER, $sender );
+		if ( '' !== $trxid ) {
+			$order->update_meta_data( BD_PCOD_Helpers::META_TRXID, $trxid );
+		}
 		$order->update_meta_data( BD_PCOD_Helpers::META_STATUS, BD_PCOD_Helpers::STATUS_SUBMITTED );
 
 		$order->add_order_note(
 			sprintf(
-				/* translators: 1: method, 2: sender number, 3: amount */
-				__( 'Customer submitted advance payment: %1$s, sender %2$s, amount %3$s. Awaiting verification.', 'woo-bd-partial-cod' ),
+				/* translators: 1: method, 2: sender number, 3: amount, 4: trxid suffix */
+				__( 'Customer submitted payment: %1$s, sender %2$s, amount %3$s%4$s. Awaiting verification.', 'woo-bd-partial-cod' ),
 				BD_PCOD_Helpers::method_label( $method ),
 				$sender,
-				wc_price( (float) $order->get_meta( BD_PCOD_Helpers::META_ADVANCE ) )
+				wc_price( (float) $order->get_meta( BD_PCOD_Helpers::META_ADVANCE ) ),
+				'' !== $trxid ? sprintf( /* translators: %s: transaction id */ __( ', TrxID %s', 'woo-bd-partial-cod' ), $trxid ) : ''
 			)
 		);
 

@@ -70,6 +70,8 @@
 
 			var method = $form.find('[name="method"]').val();
 			var sender = $.trim($form.find('[name="sender_number"]').val());
+			var $trxidField = $form.find('[name="trxid"]');
+			var trxid = $.trim($trxidField.val() || '');
 
 			$msg.removeClass('is-error is-success').text('');
 
@@ -78,13 +80,27 @@
 				return;
 			}
 
-			// Basic 11-digit BD number check (allow optional country code digits).
 			var digits = sender.replace(/\D/g, '');
-			if (digits.length > 11 && digits.indexOf('880') === 0) {
-				digits = '0' + digits.slice(3);
+			if (bdPcod.senderMode === 'partial') {
+				// Allow the last few digits only (3+).
+				if (digits.length < 3) {
+					$msg.addClass('is-error').text(bdPcod.invalidDigits);
+					return;
+				}
+			} else {
+				// Full 11-digit BD number (allow optional country code digits).
+				if (digits.length > 11 && digits.indexOf('880') === 0) {
+					digits = '0' + digits.slice(3);
+				}
+				if (!/^01[3-9]\d{8}$/.test(digits)) {
+					$msg.addClass('is-error').text(bdPcod.invalidPhone);
+					return;
+				}
 			}
-			if (!/^01[3-9]\d{8}$/.test(digits)) {
-				$msg.addClass('is-error').text(bdPcod.invalidPhone);
+
+			// Transaction ID is required only when configured as such.
+			if (bdPcod.trxidMode === 'required' && !trxid) {
+				$msg.addClass('is-error').text(bdPcod.requiredTrxid);
 				return;
 			}
 
@@ -96,7 +112,8 @@
 				order_id: $form.find('[name="order_id"]').val(),
 				order_key: $form.find('[name="order_key"]').val(),
 				method: method,
-				sender_number: sender
+				sender_number: sender,
+				trxid: trxid
 			})
 				.done(function (res) {
 					if (res && res.success) {

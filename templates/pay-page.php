@@ -7,10 +7,14 @@
  * Exposed variables:
  *
  * @var WC_Order $order
+ * @var string   $gateway_id
+ * @var string   $icon
  * @var float    $advance
  * @var float    $remaining
  * @var array    $methods
  * @var string   $default_method
+ * @var string   $collect_trxid
+ * @var string   $sender_mode
  * @var string   $nonce
  * @var string   $return_url
  * @var array    $js_data
@@ -34,7 +38,12 @@ defined( 'ABSPATH' ) || exit;
 <body class="bd-pcod-standalone">
 	<div class="bd-pcod-gateway">
 		<header class="bd-pcod-gateway__head">
-			<span class="bd-pcod-gateway__brand"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></span>
+			<span class="bd-pcod-gateway__brand">
+				<?php if ( ! empty( $icon ) ) : ?>
+					<img class="bd-pcod-gateway__icon" src="<?php echo esc_url( $icon ); ?>" alt="" />
+				<?php endif; ?>
+				<?php echo esc_html( get_bloginfo( 'name' ) ); ?>
+			</span>
 			<span class="bd-pcod-gateway__order">
 				<?php
 				/* translators: %s: order number */
@@ -44,17 +53,19 @@ defined( 'ABSPATH' ) || exit;
 		</header>
 
 		<main class="bd-pcod-gateway__body">
-			<h1 class="bd-pcod-title"><?php esc_html_e( 'Confirm your order — pay the advance', 'woo-bd-partial-cod' ); ?></h1>
+			<h1 class="bd-pcod-title"><?php echo esc_html( BD_PCOD_Helpers::get_text( $gateway_id, 'pay_title' ) ); ?></h1>
 
 			<div class="bd-pcod-amounts">
 				<p class="bd-pcod-amount-due">
-					<span><?php esc_html_e( 'Pay now to confirm', 'woo-bd-partial-cod' ); ?></span>
+					<span><?php echo esc_html( BD_PCOD_Helpers::get_text( $gateway_id, 'pay_now_label' ) ); ?></span>
 					<strong><?php echo wp_kses_post( wc_price( $advance ) ); ?></strong>
 				</p>
-				<p class="bd-pcod-amount-cod">
-					<span><?php esc_html_e( 'Remaining (cash on delivery)', 'woo-bd-partial-cod' ); ?></span>
-					<strong><?php echo wp_kses_post( wc_price( $remaining ) ); ?></strong>
-				</p>
+				<?php if ( $remaining > 0 ) : ?>
+					<p class="bd-pcod-amount-cod">
+						<span><?php echo esc_html( BD_PCOD_Helpers::get_text( $gateway_id, 'remaining_label' ) ); ?></span>
+						<strong><?php echo wp_kses_post( wc_price( $remaining ) ); ?></strong>
+					</p>
+				<?php endif; ?>
 			</div>
 
 			<?php if ( empty( $methods ) ) : ?>
@@ -65,7 +76,7 @@ defined( 'ABSPATH' ) || exit;
 
 				<form class="bd-pcod-form" id="bd-pcod-form">
 					<p class="form-row form-row-wide">
-						<label for="bd-pcod-method"><?php esc_html_e( 'Choose payment method', 'woo-bd-partial-cod' ); ?> <span class="required">*</span></label>
+						<label for="bd-pcod-method"><?php echo esc_html( BD_PCOD_Helpers::get_text( $gateway_id, 'choose_method' ) ); ?> <span class="required">*</span></label>
 						<select id="bd-pcod-method" name="method" required>
 							<?php foreach ( $methods as $key => $method ) : ?>
 								<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $key, $default_method ); ?>>
@@ -102,16 +113,34 @@ defined( 'ABSPATH' ) || exit;
 					</div>
 
 					<p class="form-row form-row-wide">
-						<label for="bd-pcod-sender"><?php esc_html_e( 'Your sender mobile number', 'woo-bd-partial-cod' ); ?> <span class="required">*</span></label>
-						<input type="tel" id="bd-pcod-sender" name="sender_number" inputmode="numeric" maxlength="14" placeholder="01XXXXXXXXX" required />
+						<label for="bd-pcod-sender"><?php echo esc_html( BD_PCOD_Helpers::get_text( $gateway_id, 'sender_label' ) ); ?> <span class="required">*</span></label>
+						<input type="tel" id="bd-pcod-sender" name="sender_number" inputmode="numeric" maxlength="14"
+							placeholder="<?php echo esc_attr( 'partial' === $sender_mode ? __( 'Last 3-4 digits', 'woo-bd-partial-cod' ) : '01XXXXXXXXX' ); ?>" required />
+						<?php if ( 'partial' === $sender_mode ) : ?>
+							<small class="bd-pcod-field-hint"><?php esc_html_e( 'You can enter just the last few digits of the number you paid from.', 'woo-bd-partial-cod' ); ?></small>
+						<?php endif; ?>
 					</p>
+
+					<?php if ( 'off' !== $collect_trxid ) : ?>
+						<p class="form-row form-row-wide">
+							<label for="bd-pcod-trxid">
+								<?php echo esc_html( BD_PCOD_Helpers::get_text( $gateway_id, 'trxid_label' ) ); ?>
+								<?php if ( 'required' === $collect_trxid ) : ?>
+									<span class="required">*</span>
+								<?php else : ?>
+									<span class="bd-pcod-optional">(<?php esc_html_e( 'optional', 'woo-bd-partial-cod' ); ?>)</span>
+								<?php endif; ?>
+							</label>
+							<input type="text" id="bd-pcod-trxid" name="trxid" maxlength="40" placeholder="<?php esc_attr_e( 'e.g. 8N7A6B5C4D', 'woo-bd-partial-cod' ); ?>"<?php echo ( 'required' === $collect_trxid ) ? ' required' : ''; ?> />
+						</p>
+					<?php endif; ?>
 
 					<input type="hidden" name="order_id" value="<?php echo esc_attr( $order->get_id() ); ?>" />
 					<input type="hidden" name="order_key" value="<?php echo esc_attr( $order->get_order_key() ); ?>" />
 					<input type="hidden" name="nonce" value="<?php echo esc_attr( $nonce ); ?>" />
 
 					<p class="form-row">
-						<button type="submit" class="button alt bd-pcod-submit"><?php esc_html_e( 'Submit &amp; confirm order', 'woo-bd-partial-cod' ); ?></button>
+						<button type="submit" class="button alt bd-pcod-submit"><?php echo esc_html( BD_PCOD_Helpers::get_text( $gateway_id, 'submit_button' ) ); ?></button>
 					</p>
 
 					<div class="bd-pcod-form__message" aria-live="polite"></div>
@@ -121,7 +150,7 @@ defined( 'ABSPATH' ) || exit;
 		</main>
 
 		<footer class="bd-pcod-gateway__foot">
-			<?php esc_html_e( 'Your order stays unconfirmed until the advance is paid and verified.', 'woo-bd-partial-cod' ); ?>
+			<?php echo esc_html( BD_PCOD_Helpers::get_text( $gateway_id, 'footer' ) ); ?>
 		</footer>
 	</div>
 

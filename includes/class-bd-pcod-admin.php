@@ -80,8 +80,10 @@ class BD_PCOD_Admin {
 		$status    = $order->get_meta( BD_PCOD_Helpers::META_STATUS );
 		$method    = $order->get_meta( BD_PCOD_Helpers::META_METHOD );
 		$sender    = $order->get_meta( BD_PCOD_Helpers::META_SENDER );
+		$trxid     = $order->get_meta( BD_PCOD_Helpers::META_TRXID );
 		$advance   = (float) $order->get_meta( BD_PCOD_Helpers::META_ADVANCE );
 		$remaining = (float) $order->get_meta( BD_PCOD_Helpers::META_REMAINING );
+		$is_full   = ( BD_PCOD_Helpers::MODE_FULL === BD_PCOD_Helpers::order_mode( $order ) );
 
 		echo '<div class="bd-pcod-metabox">';
 
@@ -92,14 +94,16 @@ class BD_PCOD_Admin {
 		);
 		printf(
 			'<p><strong>%s:</strong> %s</p>',
-			esc_html__( 'Advance due', 'woo-bd-partial-cod' ),
+			$is_full ? esc_html__( 'Amount due', 'woo-bd-partial-cod' ) : esc_html__( 'Advance due', 'woo-bd-partial-cod' ),
 			wp_kses_post( wc_price( $advance ) )
 		);
-		printf(
-			'<p><strong>%s:</strong> %s</p>',
-			esc_html__( 'Remaining (COD)', 'woo-bd-partial-cod' ),
-			wp_kses_post( wc_price( $remaining ) )
-		);
+		if ( ! $is_full ) {
+			printf(
+				'<p><strong>%s:</strong> %s</p>',
+				esc_html__( 'Remaining (COD)', 'woo-bd-partial-cod' ),
+				wp_kses_post( wc_price( $remaining ) )
+			);
+		}
 
 		if ( $method ) {
 			printf(
@@ -113,6 +117,13 @@ class BD_PCOD_Admin {
 				'<p><strong>%s:</strong> <code>%s</code></p>',
 				esc_html__( 'Sender number', 'woo-bd-partial-cod' ),
 				esc_html( $sender )
+			);
+		}
+		if ( $trxid ) {
+			printf(
+				'<p><strong>%s:</strong> <code>%s</code></p>',
+				esc_html__( 'Transaction ID', 'woo-bd-partial-cod' ),
+				esc_html( $trxid )
 			);
 		}
 
@@ -169,18 +180,25 @@ class BD_PCOD_Admin {
 		$sender    = $order->get_meta( BD_PCOD_Helpers::META_SENDER );
 
 		if ( 'bd_pcod_verify' === $action ) {
+			$is_full = ( BD_PCOD_Helpers::MODE_FULL === BD_PCOD_Helpers::order_mode( $order ) );
 			$order->update_meta_data( BD_PCOD_Helpers::META_STATUS, BD_PCOD_Helpers::STATUS_VERIFIED );
-			$order->add_order_note(
-				sprintf(
+			$note = $is_full
+				? sprintf(
+					/* translators: 1: amount, 2: method, 3: sender */
+					__( 'Payment %1$s verified (%2$s, sender %3$s). Order confirmed.', 'woo-bd-partial-cod' ),
+					$advance,
+					$method,
+					$sender
+				)
+				: sprintf(
 					/* translators: 1: amount, 2: method, 3: sender, 4: remaining */
 					__( 'Advance %1$s verified (%2$s, sender %3$s). %4$s due as cash on delivery.', 'woo-bd-partial-cod' ),
 					$advance,
 					$method,
 					$sender,
 					$remaining
-				),
-				true // Note to customer.
-			);
+				);
+			$order->add_order_note( $note, true ); // Note to customer.
 			$order->update_status( 'processing' );
 		} else {
 			$order->update_meta_data( BD_PCOD_Helpers::META_STATUS, BD_PCOD_Helpers::STATUS_REJECTED );
@@ -207,12 +225,12 @@ class BD_PCOD_Admin {
 		foreach ( $columns as $key => $label ) {
 			$new[ $key ] = $label;
 			if ( 'order_status' === $key ) {
-				$new['bd_pcod_advance'] = __( 'Advance', 'woo-bd-partial-cod' );
+				$new['bd_pcod_advance'] = __( 'Mobile payment', 'woo-bd-partial-cod' );
 			}
 		}
 		// Fallback if order_status column was not present.
 		if ( ! isset( $new['bd_pcod_advance'] ) ) {
-			$new['bd_pcod_advance'] = __( 'Advance', 'woo-bd-partial-cod' );
+			$new['bd_pcod_advance'] = __( 'Mobile payment', 'woo-bd-partial-cod' );
 		}
 		return $new;
 	}

@@ -1,6 +1,6 @@
 <?php
 /**
- * The payment gateway: settings, checkout notice, and order creation.
+ * The payment gateways: shared base plus the partial-advance gateway.
  *
  * @package WooBDPartialCOD
  */
@@ -8,23 +8,30 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * BD Partial COD payment gateway.
+ * Shared base for both BD manual mobile-payment gateways.
+ *
+ * Subclasses set $this->id, $this->mode, $this->method_title and
+ * $this->method_description, then call parent::__construct().
  */
-class BD_PCOD_Gateway extends WC_Payment_Gateway {
+abstract class BD_PCOD_Gateway_Base extends WC_Payment_Gateway {
+
+	/**
+	 * Payment mode: BD_PCOD_Helpers::MODE_PARTIAL or MODE_FULL.
+	 *
+	 * @var string
+	 */
+	public $mode = BD_PCOD_Helpers::MODE_PARTIAL;
 
 	/**
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->id                 = BD_PCOD_GATEWAY_ID;
-		$this->method_title       = __( 'BD Partial COD (bKash/Nagad/Rocket)', 'woo-bd-partial-cod' );
-		$this->method_description = __( 'Customers pay a partial advance (equal to the delivery charge) via bKash, Nagad, or Rocket to confirm a Cash-on-Delivery order. The remaining balance is collected as cash on delivery. You verify each advance manually.', 'woo-bd-partial-cod' );
-		$this->has_fields         = true;
+		$this->has_fields = true;
 
 		$this->init_form_fields();
 		$this->init_settings();
 
-		$this->title       = $this->get_option( 'title', __( 'Cash on Delivery (advance required)', 'woo-bd-partial-cod' ) );
+		$this->title       = $this->get_option( 'title', $this->get_default_title() );
 		$this->description = $this->get_option( 'description' );
 		$this->icon        = $this->get_option( 'icon_url', '' );
 
@@ -33,50 +40,136 @@ class BD_PCOD_Gateway extends WC_Payment_Gateway {
 	}
 
 	/**
+	 * Whether this gateway collects the full order total (vs a partial advance).
+	 *
+	 * @return bool
+	 */
+	protected function is_full_mode() {
+		return BD_PCOD_Helpers::MODE_FULL === $this->mode;
+	}
+
+	/**
+	 * Default checkout title for this gateway.
+	 *
+	 * @return string
+	 */
+	protected function get_default_title() {
+		return $this->is_full_mode()
+			? __( 'Mobile Payment (bKash/Nagad/Rocket)', 'woo-bd-partial-cod' )
+			: __( 'Cash on Delivery (advance required)', 'woo-bd-partial-cod' );
+	}
+
+	/**
+	 * Default checkout description for this gateway.
+	 *
+	 * @return string
+	 */
+	protected function get_default_description() {
+		return $this->is_full_mode()
+			? __( 'Pay the full amount via bKash/Nagad/Rocket. Your order is confirmed once we verify the payment.', 'woo-bd-partial-cod' )
+			: __( 'Confirm your order by paying a small advance via bKash/Nagad/Rocket. Pay the rest as cash on delivery.', 'woo-bd-partial-cod' );
+	}
+
+	/**
 	 * Define the admin settings fields.
 	 */
 	public function init_form_fields() {
 		$fields = array(
-			'enabled'          => array(
+			'enabled'     => array(
 				'title'   => __( 'Enable/Disable', 'woo-bd-partial-cod' ),
 				'type'    => 'checkbox',
-				'label'   => __( 'Enable BD Partial COD Gateway', 'woo-bd-partial-cod' ),
+				/* translators: %s: method title */
+				'label'   => sprintf( __( 'Enable %s', 'woo-bd-partial-cod' ), $this->method_title ),
 				'default' => 'no',
 			),
-			'title'            => array(
+			'title'       => array(
 				'title'       => __( 'Title', 'woo-bd-partial-cod' ),
 				'type'        => 'text',
 				'description' => __( 'Payment method title shown to the customer at checkout.', 'woo-bd-partial-cod' ),
-				'default'     => __( 'Cash on Delivery (advance required)', 'woo-bd-partial-cod' ),
+				'default'     => $this->get_default_title(),
 				'desc_tip'    => true,
 			),
-			'description'      => array(
+			'description' => array(
 				'title'       => __( 'Description', 'woo-bd-partial-cod' ),
 				'type'        => 'textarea',
-				'description' => __( 'Shown under the method at checkout, above the auto-generated advance notice.', 'woo-bd-partial-cod' ),
-				'default'     => __( 'Confirm your order by paying a small advance via bKash/Nagad/Rocket. Pay the rest as cash on delivery.', 'woo-bd-partial-cod' ),
+				'description' => __( 'Shown under the method at checkout, above the auto-generated payment notice.', 'woo-bd-partial-cod' ),
+				'default'     => $this->get_default_description(),
 			),
-			'icon_url'         => array(
-				'title'       => __( 'Checkout icon', 'woo-bd-partial-cod' ),
+			'icon_url'    => array(
+				'title'       => __( 'Gateway icon', 'woo-bd-partial-cod' ),
 				'type'        => 'bd_pcod_image',
-				'description' => __( 'Icon shown next to the method name at checkout.', 'woo-bd-partial-cod' ),
+				'description' => __( 'Icon shown next to the method name at checkout and in the payment page header. Leave blank for no icon.', 'woo-bd-partial-cod' ),
 				'default'     => 'https://sukkarshop.com/wp-content/uploads/2026/03/cod-icon.png',
 			),
-			'advance_label'    => array(
+		);
+
+		// The advance label / fallback only apply when collecting a partial advance.
+		if ( ! $this->is_full_mode() ) {
+			$fields['advance_label']    = array(
 				'title'       => __( 'Advance label', 'woo-bd-partial-cod' ),
 				'type'        => 'text',
 				'description' => __( 'Word used to describe the advance, e.g. "delivery charge".', 'woo-bd-partial-cod' ),
 				'default'     => __( 'delivery charge', 'woo-bd-partial-cod' ),
 				'desc_tip'    => true,
-			),
-			'fallback_advance' => array(
+			);
+			$fields['fallback_advance'] = array(
 				'title'       => __( 'Fallback advance amount', 'woo-bd-partial-cod' ),
 				'type'        => 'price',
 				'description' => __( 'Used when an order has no shipping fee (e.g. free delivery), so the advance is never zero.', 'woo-bd-partial-cod' ),
 				'default'     => '100',
 				'desc_tip'    => true,
+			);
+		}
+
+		// Verification behaviour.
+		$fields['verification_section'] = array(
+			'title'       => __( 'Verification', 'woo-bd-partial-cod' ),
+			'type'        => 'title',
+			'description' => __( 'Control what the customer must submit as proof of payment.', 'woo-bd-partial-cod' ),
+		);
+		$fields['collect_trxid']        = array(
+			'title'       => __( 'Transaction ID (TrxID)', 'woo-bd-partial-cod' ),
+			'type'        => 'select',
+			'description' => __( 'Ask the customer for the bKash/Nagad transaction ID when they submit payment.', 'woo-bd-partial-cod' ),
+			'default'     => 'off',
+			'desc_tip'    => true,
+			'options'     => array(
+				'off'      => __( 'Do not ask', 'woo-bd-partial-cod' ),
+				'optional' => __( 'Ask (optional)', 'woo-bd-partial-cod' ),
+				'required' => __( 'Ask (required)', 'woo-bd-partial-cod' ),
 			),
 		);
+		$fields['sender_number_mode']   = array(
+			'title'       => __( 'Sender number', 'woo-bd-partial-cod' ),
+			'type'        => 'select',
+			'description' => __( 'Full requires a valid 11-digit number. Partial lets the customer confirm with just the last few digits.', 'woo-bd-partial-cod' ),
+			'default'     => 'full',
+			'desc_tip'    => true,
+			'options'     => array(
+				'full'    => __( 'Require full 11-digit number', 'woo-bd-partial-cod' ),
+				'partial' => __( 'Allow last few digits (3+)', 'woo-bd-partial-cod' ),
+			),
+		);
+
+		// The full gateway can share the partial gateway's numbers/QR/instructions.
+		if ( $this->is_full_mode() ) {
+			$fields['methods_section']       = array(
+				'title'       => __( 'Payment numbers', 'woo-bd-partial-cod' ),
+				'type'        => 'title',
+				'description' => __( 'Configure the numbers customers pay to — or reuse the ones already set on the BD Partial COD gateway.', 'woo-bd-partial-cod' ),
+			);
+			$fields['reuse_partial_methods'] = array(
+				'title'       => __( 'Reuse numbers', 'woo-bd-partial-cod' ),
+				'type'        => 'select',
+				'description' => __( 'Copy once: fills the fields below from the BD Partial COD gateway on save (you can then edit them). Always mirror: ignores the fields below and reads the partial gateway\'s numbers live, so they stay in sync automatically.', 'woo-bd-partial-cod' ),
+				'default'     => 'off',
+				'options'     => array(
+					'off'    => __( 'Use this gateway\'s own numbers', 'woo-bd-partial-cod' ),
+					'copy'   => __( 'Copy once from BD Partial COD (on save)', 'woo-bd-partial-cod' ),
+					'mirror' => __( 'Always mirror BD Partial COD (live)', 'woo-bd-partial-cod' ),
+				),
+			);
+		}
 
 		// Build a settings block for each supported payment method.
 		$defaults_enabled = array(
@@ -99,14 +192,14 @@ class BD_PCOD_Gateway extends WC_Payment_Gateway {
 				'title'   => sprintf( __( 'Enable %s', 'woo-bd-partial-cod' ), $label ),
 				'type'    => 'checkbox',
 				/* translators: %s: method label */
-				'label'   => sprintf( __( 'Accept advance payments via %s', 'woo-bd-partial-cod' ), $label ),
+				'label'   => sprintf( __( 'Accept payments via %s', 'woo-bd-partial-cod' ), $label ),
 				'default' => isset( $defaults_enabled[ $key ] ) ? $defaults_enabled[ $key ] : 'no',
 			);
 			$fields[ $key . '_number' ]       = array(
 				/* translators: 1: action (Send Money to / Make Payment to), 2: method label */
 				'title'       => sprintf( __( '%1$s number (%2$s)', 'woo-bd-partial-cod' ), $action, $label ),
 				'type'        => 'text',
-				'description' => __( 'The number customers send the advance to.', 'woo-bd-partial-cod' ),
+				'description' => __( 'The number customers send the payment to.', 'woo-bd-partial-cod' ),
 				'placeholder' => '01XXXXXXXXX',
 				'desc_tip'    => true,
 			);
@@ -122,6 +215,22 @@ class BD_PCOD_Gateway extends WC_Payment_Gateway {
 				'type'    => 'textarea',
 				/* translators: 1: action, 2: method label */
 				'default' => sprintf( __( 'Open %2$s → %1$s → enter the number above → enter the exact amount → confirm. Then submit your sender number below.', 'woo-bd-partial-cod' ), $action, $label ),
+			);
+		}
+
+		// Editable customer-facing texts. Each is blank by default and falls back
+		// to the mode-aware default shown as a placeholder.
+		$fields['texts_section'] = array(
+			'title'       => __( 'Texts / Labels', 'woo-bd-partial-cod' ),
+			'type'        => 'title',
+			'description' => __( 'Customise the wording shown to customers. Each field is pre-filled with the default — edit it directly. Use {amount} and {label} as placeholders in the checkout notice.', 'woo-bd-partial-cod' ),
+		);
+
+		foreach ( BD_PCOD_Helpers::text_fields() as $key => $field ) {
+			$fields[ 'text_' . $key ] = array(
+				'title'   => $field['label'],
+				'type'    => $field['type'],
+				'default' => BD_PCOD_Helpers::default_text( $key, $this->mode ),
 			);
 		}
 
@@ -190,7 +299,7 @@ class BD_PCOD_Gateway extends WC_Payment_Gateway {
 		if ( 'woocommerce_page_wc-settings' !== $hook ) {
 			return;
 		}
-		if ( ! isset( $_GET['section'] ) || BD_PCOD_GATEWAY_ID !== sanitize_text_field( wp_unslash( $_GET['section'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! isset( $_GET['section'] ) || $this->id !== sanitize_text_field( wp_unslash( $_GET['section'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			return;
 		}
 
@@ -215,7 +324,7 @@ class BD_PCOD_Gateway extends WC_Payment_Gateway {
 		}
 
 		// Require at least one mobile method configured.
-		return ! empty( BD_PCOD_Helpers::get_enabled_methods() );
+		return ! empty( BD_PCOD_Helpers::get_enabled_methods( $this->id ) );
 	}
 
 	/**
@@ -231,20 +340,21 @@ class BD_PCOD_Gateway extends WC_Payment_Gateway {
 			return;
 		}
 
-		$label = $this->get_option( 'advance_label', __( 'delivery charge', 'woo-bd-partial-cod' ) );
-
-		echo '<p class="bd-pcod-checkout-notice">';
-		printf(
-			/* translators: 1: advance amount, 2: advance label (e.g. delivery charge). */
-			wp_kses_post( __( 'You must pay <strong>%1$s</strong> (%2$s) now to confirm this order. The remaining balance is collected as cash on delivery.', 'woo-bd-partial-cod' ) ),
-			wp_kses_post( wc_price( $advance ) ),
-			esc_html( $label )
+		$label  = $this->get_option( 'advance_label', __( 'delivery charge', 'woo-bd-partial-cod' ) );
+		$notice = BD_PCOD_Helpers::get_text(
+			$this->id,
+			'checkout_notice',
+			array(
+				'amount' => '<strong>' . wc_price( $advance ) . '</strong>',
+				'label'  => esc_html( $label ),
+			)
 		);
-		echo '</p>';
+
+		echo '<p class="bd-pcod-checkout-notice">' . wp_kses_post( $notice ) . '</p>';
 	}
 
 	/**
-	 * Estimate the advance amount from the current cart for the checkout notice.
+	 * Estimate the amount due from the current cart for the checkout notice.
 	 *
 	 * @return float|null
 	 */
@@ -253,12 +363,17 @@ class BD_PCOD_Gateway extends WC_Payment_Gateway {
 			return null;
 		}
 
+		$total = (float) WC()->cart->get_total( 'edit' );
+
+		if ( $this->is_full_mode() ) {
+			return round( $total, wc_get_price_decimals() );
+		}
+
 		$shipping = (float) WC()->cart->get_shipping_total();
 		if ( $shipping <= 0 ) {
 			$shipping = (float) $this->get_option( 'fallback_advance', 0 );
 		}
 
-		$total = (float) WC()->cart->get_total( 'edit' );
 		if ( $total > 0 && $shipping > $total ) {
 			$shipping = $total;
 		}
@@ -267,7 +382,7 @@ class BD_PCOD_Gateway extends WC_Payment_Gateway {
 	}
 
 	/**
-	 * Process the payment: create the order, store advance details, redirect to the payment page.
+	 * Process the payment: create the order, store payment details, redirect to the payment page.
 	 *
 	 * @param int $order_id Order ID.
 	 * @return array
@@ -282,10 +397,10 @@ class BD_PCOD_Gateway extends WC_Payment_Gateway {
 		$order->update_meta_data( BD_PCOD_Helpers::META_REMAINING, $remaining );
 		$order->update_meta_data( BD_PCOD_Helpers::META_STATUS, BD_PCOD_Helpers::STATUS_AWAITING );
 
-		// Keep the order pending until the customer submits proof of the advance payment.
+		// Keep the order pending until the customer submits proof of payment.
 		$order->update_status(
 			'pending',
-			__( 'Awaiting advance payment via bKash/Nagad.', 'woo-bd-partial-cod' )
+			__( 'Awaiting payment via bKash/Nagad/Rocket.', 'woo-bd-partial-cod' )
 		);
 		$order->save();
 
@@ -293,7 +408,7 @@ class BD_PCOD_Gateway extends WC_Payment_Gateway {
 		wc_reduce_stock_levels( $order_id );
 
 		// Empty the cart and send the customer to the standalone gateway
-		// page where they complete the advance payment.
+		// page where they complete the payment.
 		if ( WC()->cart ) {
 			WC()->cart->empty_cart();
 		}
@@ -302,5 +417,23 @@ class BD_PCOD_Gateway extends WC_Payment_Gateway {
 			'result'   => 'success',
 			'redirect' => BD_PCOD_Helpers::get_pay_url( $order ),
 		);
+	}
+}
+
+/**
+ * Partial-advance gateway: collects the delivery charge up front, rest is COD.
+ */
+class BD_PCOD_Gateway extends BD_PCOD_Gateway_Base {
+
+	/**
+	 * Constructor.
+	 */
+	public function __construct() {
+		$this->id                 = BD_PCOD_GATEWAY_ID;
+		$this->mode               = BD_PCOD_Helpers::MODE_PARTIAL;
+		$this->method_title       = __( 'BD Partial COD (bKash/Nagad/Rocket)', 'woo-bd-partial-cod' );
+		$this->method_description = __( 'Customers pay a partial advance (equal to the delivery charge) via bKash, Nagad, or Rocket to confirm a Cash-on-Delivery order. The remaining balance is collected as cash on delivery. You verify each advance manually.', 'woo-bd-partial-cod' );
+
+		parent::__construct();
 	}
 }

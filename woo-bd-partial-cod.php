@@ -2,8 +2,8 @@
 /**
  * Plugin Name:       BD Partial COD Gateway
  * Plugin URI:        https://github.com/almahmud/custom-gateway
- * Description:        Collect a partial advance payment (equal to the delivery charge) via bKash/Nagad to confirm a Cash-on-Delivery order. The rest is paid as cash on delivery. Manual admin verification, no API keys required.
- * Version:           1.4.0
+ * Description:        Collect a partial advance (equal to the delivery charge) or the full order total via bKash/Nagad/Rocket. Manual admin verification, no API keys required.
+ * Version:           1.5.0
  * Author:            almahmud
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -19,11 +19,12 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'BD_PCOD_VERSION', '1.3.0' );
+define( 'BD_PCOD_VERSION', '1.5.0' );
 define( 'BD_PCOD_FILE', __FILE__ );
 define( 'BD_PCOD_PATH', plugin_dir_path( __FILE__ ) );
 define( 'BD_PCOD_URL', plugin_dir_url( __FILE__ ) );
 define( 'BD_PCOD_GATEWAY_ID', 'bd_partial_cod' );
+define( 'BD_PCOD_FULL_GATEWAY_ID', 'bd_full_mobile' );
 
 /**
  * Declare High-Performance Order Storage (HPOS) compatibility.
@@ -55,6 +56,7 @@ function bd_pcod_init() {
 
 	require_once BD_PCOD_PATH . 'includes/class-bd-pcod-helpers.php';
 	require_once BD_PCOD_PATH . 'includes/class-bd-pcod-gateway.php';
+	require_once BD_PCOD_PATH . 'includes/class-bd-pcod-full-gateway.php';
 	require_once BD_PCOD_PATH . 'includes/class-bd-pcod-payment-page.php';
 
 	// Register the gateway with WooCommerce.
@@ -81,6 +83,7 @@ function bd_pcod_init() {
  */
 function bd_pcod_register_gateway( $gateways ) {
 	$gateways[] = 'BD_PCOD_Gateway';
+	$gateways[] = 'BD_PCOD_Full_Gateway';
 	return $gateways;
 }
 
