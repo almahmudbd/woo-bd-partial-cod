@@ -33,7 +33,8 @@ defined( 'ABSPATH' ) || exit;
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<meta name="robots" content="noindex,nofollow" />
 	<title><?php esc_html_e( 'Complete your payment', 'aam-partial-cod' ); ?></title>
-	<link rel="stylesheet" href="<?php echo esc_url( BD_PCOD_URL . 'assets/css/frontend.css?ver=' . BD_PCOD_VERSION ); ?>" />
+	<link rel="stylesheet" href="<?php echo esc_url( BD_PCOD_URL . 'assets/css/frontend.css?ver=' . BD_PCOD_VERSION ); ?>" /> <?php // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- Standalone full-document template outside WP theme context.
+?>
 </head>
 <body class="bd-pcod-standalone">
 	<div class="bd-pcod-gateway">
@@ -78,35 +79,37 @@ defined( 'ABSPATH' ) || exit;
 					<p class="form-row form-row-wide">
 						<label for="bd-pcod-method"><?php echo esc_html( BD_PCOD_Helpers::get_text( $gateway_id, 'choose_method' ) ); ?> <span class="required">*</span></label>
 						<select id="bd-pcod-method" name="method" required>
-							<?php foreach ( $methods as $key => $method ) : ?>
-								<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $key, $default_method ); ?>>
-									<?php echo esc_html( $method['label'] ); ?>
+							<?php foreach ( $methods as $bd_pcod_key => $bd_pcod_method ) : // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template loop variable.
+							?>
+								<option value="<?php echo esc_attr( $bd_pcod_key ); ?>" <?php selected( $bd_pcod_key, $default_method ); ?>>
+									<?php echo esc_html( $bd_pcod_method['label'] ); ?>
 								</option>
 							<?php endforeach; ?>
 						</select>
 					</p>
 
 					<div class="bd-pcod-method-panels">
-						<?php foreach ( $methods as $key => $method ) : ?>
-							<div class="bd-pcod-method-panel" data-method="<?php echo esc_attr( $key ); ?>"<?php echo ( $key === $default_method ) ? '' : ' hidden'; ?>>
-								<?php if ( ! empty( $method['qr'] ) ) : ?>
+						<?php foreach ( $methods as $bd_pcod_key => $bd_pcod_method ) : // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template loop variable.
+						?>
+							<div class="bd-pcod-method-panel" data-method="<?php echo esc_attr( $bd_pcod_key ); ?>"<?php echo ( $bd_pcod_key === $default_method ) ? '' : ' hidden'; ?>>
+								<?php if ( ! empty( $bd_pcod_method['qr'] ) ) : ?>
 									<div class="bd-pcod-qr">
-										<img src="<?php echo esc_url( $method['qr'] ); ?>" alt="<?php echo esc_attr( sprintf( /* translators: %s: method */ __( '%s QR code', 'aam-partial-cod' ), $method['label'] ) ); ?>" />
+										<img src="<?php echo esc_url( $bd_pcod_method['qr'] ); ?>" alt="<?php echo esc_attr( sprintf( /* translators: %s: method */ __( '%s QR code', 'aam-partial-cod' ), $bd_pcod_method['label'] ) ); ?>" />
 									</div>
 								<?php endif; ?>
 
 								<div class="bd-pcod-number">
 									<span class="bd-pcod-number__label">
-										<?php echo esc_html( BD_PCOD_Helpers::action_label( $method['action'] ) ); ?>
+										<?php echo esc_html( BD_PCOD_Helpers::action_label( $bd_pcod_method['action'] ) ); ?>
 									</span>
-									<code class="bd-pcod-number__value"><?php echo esc_html( $method['number'] ); ?></code>
-									<button type="button" class="button bd-pcod-copy" data-copy="<?php echo esc_attr( $method['number'] ); ?>">
+									<code class="bd-pcod-number__value"><?php echo esc_html( $bd_pcod_method['number'] ); ?></code>
+									<button type="button" class="button bd-pcod-copy" data-copy="<?php echo esc_attr( $bd_pcod_method['number'] ); ?>">
 										<?php esc_html_e( 'Copy', 'aam-partial-cod' ); ?>
 									</button>
 								</div>
 
-								<?php if ( ! empty( $method['instructions'] ) ) : ?>
-									<p class="bd-pcod-method__instructions"><?php echo esc_html( $method['instructions'] ); ?></p>
+								<?php if ( ! empty( $bd_pcod_method['instructions'] ) ) : ?>
+									<p class="bd-pcod-method__instructions"><?php echo esc_html( $bd_pcod_method['instructions'] ); ?></p>
 								<?php endif; ?>
 							</div>
 						<?php endforeach; ?>
@@ -154,9 +157,11 @@ defined( 'ABSPATH' ) || exit;
 		</footer>
 	</div>
 
-	<script src="<?php echo esc_url( includes_url( 'js/jquery/jquery.min.js' ) ); ?>"></script>
+	<script src="<?php echo esc_url( includes_url( 'js/jquery/jquery.min.js' ) ); ?>" ><?php // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- Standalone full-document template outside WP theme context.
+	?></script>
 	<script>window.bdPcod = <?php echo wp_json_encode( $js_data ); ?>;</script>
-	<script src="<?php echo esc_url( BD_PCOD_URL . 'assets/js/frontend.js?ver=' . BD_PCOD_VERSION ); ?>"></script>
+	<script src="<?php echo esc_url( BD_PCOD_URL . 'assets/js/frontend.js?ver=' . BD_PCOD_VERSION ); ?>" ><?php // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- Standalone full-document template outside WP theme context.
+	?></script>
 </body>
 </html>
 <?php

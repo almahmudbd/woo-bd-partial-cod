@@ -64,7 +64,7 @@ class BD_PCOD_Full_Gateway extends BD_PCOD_Gateway_Base {
 
 		update_option(
 			$this->get_option_key(),
-			apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings ),
+			apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $this->id, $this->settings ), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 			'yes'
 		);
 

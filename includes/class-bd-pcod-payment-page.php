@@ -228,14 +228,14 @@ class BD_PCOD_Payment_Page {
 			: $order->get_checkout_order_received_url();
 
 		if ( $plain_text ) {
-			echo "\n" . wp_strip_all_tags(
+			echo "\n" . esc_html( wp_strip_all_tags(
 				sprintf(
 					/* translators: 1: amount, 2: url */
 					__( 'Please pay %1$s to confirm your order, then submit your payment details here: %2$s', 'aam-partial-cod' ),
 					$advance,
 					$url
 				)
-			) . "\n\n";
+			) ) . "\n\n";
 			return;
 		}
 
@@ -258,7 +258,7 @@ class BD_PCOD_Payment_Page {
 		$order_id  = isset( $_POST['order_id'] ) ? absint( wp_unslash( $_POST['order_id'] ) ) : 0;
 		$order_key = isset( $_POST['order_key'] ) ? sanitize_text_field( wp_unslash( $_POST['order_key'] ) ) : '';
 		$method    = isset( $_POST['method'] ) ? sanitize_key( wp_unslash( $_POST['method'] ) ) : '';
-		$sender    = isset( $_POST['sender_number'] ) ? wp_unslash( $_POST['sender_number'] ) : '';
+		$sender    = isset( $_POST['sender_number'] ) ? sanitize_text_field( wp_unslash( $_POST['sender_number'] ) ) : '';
 		$trxid_raw = isset( $_POST['trxid'] ) ? sanitize_text_field( wp_unslash( $_POST['trxid'] ) ) : '';
 
 		$order = $order_id ? wc_get_order( $order_id ) : false;
@@ -344,7 +344,7 @@ class BD_PCOD_Payment_Page {
 		$order_id   = isset( $_POST['order_id'] ) ? absint( wp_unslash( $_POST['order_id'] ) ) : 0;
 		$order_key  = isset( $_POST['order_key'] ) ? sanitize_text_field( wp_unslash( $_POST['order_key'] ) ) : '';
 		$bank       = isset( $_POST['bank'] ) ? sanitize_key( wp_unslash( $_POST['bank'] ) ) : '';
-		$acct_raw   = isset( $_POST['account_confirm'] ) ? wp_unslash( $_POST['account_confirm'] ) : '';
+		$acct_raw   = isset( $_POST['account_confirm'] ) ? sanitize_text_field( wp_unslash( $_POST['account_confirm'] ) ) : '';
 
 		$order = $order_id ? wc_get_order( $order_id ) : false;
 		if ( ! $order || $order->get_payment_method() !== BD_PCOD_BANK_GATEWAY_ID || ! hash_equals( $order->get_order_key(), $order_key ) ) {

@@ -140,7 +140,7 @@ class BD_PCOD_Bank_Gateway extends WC_Payment_Gateway {
 	 */
 	public function payment_fields() {
 		if ( $this->description ) {
-			echo wpautop( wp_kses_post( wptexturize( $this->description ) ) );
+			echo wp_kses_post( wpautop( wp_kses_post( wptexturize( $this->description ) ) ) );
 		}
 		if ( WC()->cart ) {
 			$total = (float) WC()->cart->get_total( 'edit' );

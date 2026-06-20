@@ -407,7 +407,7 @@ abstract class BD_PCOD_Gateway_Base extends WC_Payment_Gateway {
 	 */
 	public function payment_fields() {
 		if ( $this->description ) {
-			echo wpautop( wp_kses_post( wptexturize( $this->description ) ) );
+			echo wp_kses_post( wpautop( wp_kses_post( wptexturize( $this->description ) ) ) );
 		}
 
 		$advance = $this->get_cart_advance_amount();
