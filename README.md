@@ -1,11 +1,11 @@
  BD Partial COD Gateway (bKash/Nagad/Rocket)
 --------
-Contributors: almahmud
+Contributors: almahmudbd
 Tags: woocommerce, payment gateway, cash on delivery, bkash, nagad, rocket, bangladesh, partial payment
 Requires at least: 6.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.5.2
+Stable tag: 1.5.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -35,7 +35,7 @@ Both share the same payment page, verification workflow, and settings — enable
 **Features**
 
 * Two modes: partial advance (delivery charge) and full payment.
-* bKash (Personal/Merchant), Nagad, and Rocket — each with its own number, QR image, and instructions.
+* bKash, Nagad, and Rocket — each with both **Merchant** and **Personal** accounts (merchant listed first), each with its own number, QR image, and instructions, and each independently switched on/off.
 * **Editable texts** — customise every customer-facing string (checkout notice, payment page title/labels/button/footer, status messages) per gateway, in any language. Every field is pre-filled with the default, ready to edit.
 * **Transaction ID (TrxID)** — ask for it Off / Optional / Required.
 * **Flexible sender number** — require a full 11-digit number, or let the customer confirm with just the last few digits.
@@ -74,6 +74,9 @@ No. Set **Reuse numbers** on the full gateway to either *Copy once* (fills its f
 The plugin targets the classic (shortcode) checkout. Block (Store API) support is planned.
 
 == Changelog ==
+
+= 1.5.3 =
+* Default gateway icons are now bundled with the plugin (cod-icon.png for partial COD, desi-gateways.jpg for full payment) instead of an external URL.
 
 = 1.5.2 =
 * Fix: the Texts / Labels fields now always show the (editable) default wording, even if an earlier save had stored them empty.

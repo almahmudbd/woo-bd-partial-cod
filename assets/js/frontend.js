@@ -141,5 +141,62 @@
 					$submit.prop('disabled', false);
 				});
 		});
+	// ── Bank transfer form ──────────────────────────────────────────────────
+	var $bankForm = $('#bd-pcod-bank-form');
+	if ( $bankForm.length ) {
+		function showSelectedBank() {
+			var sel = String($bankForm.find('[name="bank"]').val());
+			$bankForm.find('.bd-pcod-bank-panel').each(function () {
+				$(this).prop('hidden', String($(this).data('method')) !== sel);
+			});
+		}
+		$bankForm.on('change', '[name="bank"]', showSelectedBank);
+		showSelectedBank();
+
+		var bankPaid = false;
+		$(window).on('beforeunload.bdpcodbank', function () {
+			if (!bankPaid) return bdPcod.leaveWarning;
+		});
+
+		$bankForm.on('submit', function (e) {
+			e.preventDefault();
+			var $msg    = $bankForm.find('.bd-pcod-form__message');
+			var $submit = $bankForm.find('.bd-pcod-submit');
+			var bank    = $bankForm.find('[name="bank"]').val();
+			var acct    = $.trim($bankForm.find('[name="account_confirm"]').val());
+
+			$msg.removeClass('is-error is-success').text('');
+
+			if (!bank || !acct) { $msg.addClass('is-error').text(bdPcod.required); return; }
+			if (acct.replace(/\D/g, '').length < 4) { $msg.addClass('is-error').text(bdPcod.invalidAccount); return; }
+
+			$submit.prop('disabled', true);
+			$.post(bdPcod.ajaxUrl, {
+				action:           bdPcod.action,
+				nonce:            $bankForm.find('[name="nonce"]').val(),
+				order_id:         $bankForm.find('[name="order_id"]').val(),
+				order_key:        $bankForm.find('[name="order_key"]').val(),
+				bank:             bank,
+				account_confirm:  acct
+			}).done(function (res) {
+				if (res && res.success) {
+					$msg.addClass('is-success').text(res.data.message);
+					if (res.data.submitted) {
+						bankPaid = true;
+						$(window).off('beforeunload.bdpcodbank');
+						$bankForm.find('input,select,button').prop('disabled', true);
+						if (res.data.redirect) window.location.href = res.data.redirect;
+					}
+				} else {
+					$msg.addClass('is-error').text(res && res.data && res.data.message ? res.data.message : 'Error');
+					$submit.prop('disabled', false);
+				}
+			}).fail(function () {
+				$msg.addClass('is-error').text('Something went wrong. Please try again.');
+				$submit.prop('disabled', false);
+			});
+		});
+	}
+
 	});
 })(jQuery);

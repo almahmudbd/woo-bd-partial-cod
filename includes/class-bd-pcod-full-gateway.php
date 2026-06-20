@@ -21,8 +21,8 @@ class BD_PCOD_Full_Gateway extends BD_PCOD_Gateway_Base {
 	public function __construct() {
 		$this->id                 = BD_PCOD_FULL_GATEWAY_ID;
 		$this->mode               = BD_PCOD_Helpers::MODE_FULL;
-		$this->method_title       = __( 'BD Manual Mobile Payment (full)', 'woo-bd-partial-cod' );
-		$this->method_description = __( 'Customers pay the full order total via bKash, Nagad, or Rocket and submit their payment details. You verify each payment manually — no API keys required.', 'woo-bd-partial-cod' );
+		$this->method_title       = __( 'BD Manual Mobile Payment (full)', 'aam-partial-cod' );
+		$this->method_description = __( 'Customers pay the full order total via bKash, Nagad, or Rocket and submit their payment details. You verify each payment manually — no API keys required.', 'aam-partial-cod' );
 
 		parent::__construct();
 	}

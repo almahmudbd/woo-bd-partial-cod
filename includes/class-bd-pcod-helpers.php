@@ -40,8 +40,12 @@ class BD_PCOD_Helpers {
 		return array(
 			BD_PCOD_GATEWAY_ID      => self::MODE_PARTIAL,
 			BD_PCOD_FULL_GATEWAY_ID => self::MODE_FULL,
+			BD_PCOD_BANK_GATEWAY_ID => self::MODE_FULL,
 		);
 	}
+
+	// Option holding the master visibility toggles (which gateways/methods are exposed).
+	const OPTION_VISIBILITY = 'bd_pcod_visibility';
 
 	/**
 	 * The payment mode for a given gateway id.
@@ -55,6 +59,63 @@ class BD_PCOD_Helpers {
 	}
 
 	/**
+	 * Human-readable label for a gateway id (used on the visibility settings page).
+	 *
+	 * @param string $gateway_id Gateway id.
+	 * @return string
+	 */
+	public static function gateway_label( $gateway_id ) {
+		$labels = array(
+			BD_PCOD_GATEWAY_ID      => __( 'AAM Partial COD (bKash/Nagad/Rocket)', 'aam-partial-cod' ),
+			BD_PCOD_FULL_GATEWAY_ID => __( 'Full Mobile Payment (bKash/Nagad/Rocket)', 'aam-partial-cod' ),
+			BD_PCOD_BANK_GATEWAY_ID => __( 'Manual Bank Transfer', 'aam-partial-cod' ),
+		);
+		return isset( $labels[ $gateway_id ] ) ? $labels[ $gateway_id ] : $gateway_id;
+	}
+
+	/**
+	 * The master visibility toggles, as a structured array.
+	 *
+	 * @return array{gateways:array<string,int>,methods:array<string,int>}
+	 */
+	public static function get_visibility() {
+		$opt = get_option( self::OPTION_VISIBILITY, array() );
+		return is_array( $opt ) ? $opt : array();
+	}
+
+	/**
+	 * Whether a gateway is exposed (registered with WooCommerce).
+	 *
+	 * Defaults to visible when never configured, so existing installs are unaffected.
+	 *
+	 * @param string $gateway_id Gateway id.
+	 * @return bool
+	 */
+	public static function is_gateway_visible( $gateway_id ) {
+		$visibility = self::get_visibility();
+		if ( ! isset( $visibility['gateways'] ) || ! array_key_exists( $gateway_id, (array) $visibility['gateways'] ) ) {
+			return true;
+		}
+		return ! empty( $visibility['gateways'][ $gateway_id ] );
+	}
+
+	/**
+	 * Whether a payment method is exposed (shown in settings and offered to customers).
+	 *
+	 * Defaults to visible when never configured.
+	 *
+	 * @param string $method Method key.
+	 * @return bool
+	 */
+	public static function is_method_visible( $method ) {
+		$visibility = self::get_visibility();
+		if ( ! isset( $visibility['methods'] ) || ! array_key_exists( $method, (array) $visibility['methods'] ) ) {
+			return true;
+		}
+		return ! empty( $visibility['methods'][ $method ] );
+	}
+
+	/**
 	 * The payment mode for a given order (resolved from its payment method).
 	 *
 	 * @param WC_Order $order Order object.
@@ -62,6 +123,20 @@ class BD_PCOD_Helpers {
 	 */
 	public static function order_mode( $order ) {
 		return self::gateway_mode( $order instanceof WC_Order ? $order->get_payment_method() : '' );
+	}
+
+	/**
+	 * Default checkout icon URL for a gateway, bundled with the plugin.
+	 *
+	 * @param string $gateway_id Gateway id.
+	 * @return string
+	 */
+	public static function default_icon( $gateway_id ) {
+		$file = ( self::MODE_FULL === self::gateway_mode( $gateway_id ) )
+			? 'assets/desi-gateways.jpg'
+			: 'assets/cod-icon.png';
+
+		return BD_PCOD_URL . $file;
 	}
 
 	/**
@@ -88,11 +163,79 @@ class BD_PCOD_Helpers {
 	}
 
 	/**
+	 * Calculate the partial advance for a given total/shipping pair.
+	 *
+	 * Supports three strategies (the gateway's "advance_type" setting):
+	 *  - delivery_charge: the order's shipping total (the original behaviour);
+	 *  - percentage:      a percentage of the order total, optionally rounded;
+	 *  - fixed:           a flat amount.
+	 *
+	 * Whatever the strategy, the fallback amount is used when the result would be
+	 * zero (e.g. free delivery, or an unconfigured amount) so the advance is never
+	 * ৳0, and the advance never exceeds the order total.
+	 *
+	 * @param float  $total      Order/cart total.
+	 * @param float  $shipping   Order/cart shipping total.
+	 * @param string $gateway_id Gateway id whose settings to read.
+	 * @return float
+	 */
+	public static function calculate_partial_advance( $total, $shipping, $gateway_id ) {
+		$total    = (float) $total;
+		$shipping = (float) $shipping;
+		$type     = self::get_setting( $gateway_id, 'advance_type', 'delivery_charge' );
+
+		switch ( $type ) {
+			case 'percentage':
+				$percent = (float) self::get_setting( $gateway_id, 'advance_percentage', 0 );
+				$amount  = $total * ( $percent / 100 );
+				$amount  = self::round_to_step( $amount, (float) self::get_setting( $gateway_id, 'advance_rounding', 0 ) );
+				break;
+
+			case 'fixed':
+				$amount = (float) self::get_setting( $gateway_id, 'advance_fixed', 0 );
+				break;
+
+			case 'delivery_charge':
+			default:
+				$amount = $shipping;
+				break;
+		}
+
+		// Never leave the advance at zero — fall back to the configured amount.
+		if ( $amount <= 0 ) {
+			$amount = (float) self::get_setting( $gateway_id, 'fallback_advance', 0 );
+		}
+
+		// Never exceed the order total.
+		if ( $total > 0 && $amount > $total ) {
+			$amount = $total;
+		}
+
+		return round( $amount, wc_get_price_decimals() );
+	}
+
+	/**
+	 * Round an amount to the nearest step (e.g. nearest 10). A step of 0 (or less)
+	 * leaves the amount untouched.
+	 *
+	 * @param float $amount Amount to round.
+	 * @param float $step   Rounding step.
+	 * @return float
+	 */
+	public static function round_to_step( $amount, $step ) {
+		$step = (float) $step;
+		if ( $step <= 0 ) {
+			return (float) $amount;
+		}
+		return round( $amount / $step ) * $step;
+	}
+
+	/**
 	 * Calculate the advance amount due for an order.
 	 *
-	 * In full mode this is the entire order total. In partial mode it equals the
-	 * order's shipping/delivery total, falling back to a fixed amount when shipping
-	 * is zero so the advance is never ৳0.
+	 * In full mode this is the entire order total. In partial mode it is resolved
+	 * by {@see self::calculate_partial_advance()} from the gateway's configured
+	 * advance strategy.
 	 *
 	 * @param WC_Order $order The order.
 	 * @return float
@@ -101,18 +244,9 @@ class BD_PCOD_Helpers {
 		$total = (float) $order->get_total();
 
 		if ( self::MODE_FULL === self::order_mode( $order ) ) {
-			$amount = $total;
+			$amount = round( $total, wc_get_price_decimals() );
 		} else {
-			$amount = (float) $order->get_shipping_total();
-
-			if ( $amount <= 0 ) {
-				$amount = (float) self::get_setting( $order->get_payment_method(), 'fallback_advance', 0 );
-			}
-
-			// Never exceed the order total.
-			if ( $amount > $total ) {
-				$amount = $total;
-			}
+			$amount = self::calculate_partial_advance( $total, (float) $order->get_shipping_total(), $order->get_payment_method() );
 		}
 
 		/**
@@ -121,7 +255,7 @@ class BD_PCOD_Helpers {
 		 * @param float    $amount Advance amount.
 		 * @param WC_Order $order  Order object.
 		 */
-		return (float) apply_filters( 'bd_pcod_advance_amount', round( $amount, wc_get_price_decimals() ), $order );
+		return (float) apply_filters( 'bd_pcod_advance_amount', $amount, $order );
 	}
 
 	/**
@@ -215,23 +349,108 @@ class BD_PCOD_Helpers {
 	 */
 	public static function get_methods_config() {
 		return array(
-			'bkash_personal' => array(
-				'label'  => __( 'bKash (Personal)', 'woo-bd-partial-cod' ),
-				'action' => 'send',
-			),
-			'bkash_merchant' => array(
-				'label'  => __( 'bKash (Merchant)', 'woo-bd-partial-cod' ),
+			'bkash_merchant'  => array(
+				'label'  => __( 'bKash (Merchant)', 'aam-partial-cod' ),
 				'action' => 'payment',
 			),
-			'nagad'          => array(
-				'label'  => __( 'Nagad', 'woo-bd-partial-cod' ),
+			'bkash_personal'  => array(
+				'label'  => __( 'bKash (Personal)', 'aam-partial-cod' ),
 				'action' => 'send',
 			),
-			'rocket'         => array(
-				'label'  => __( 'Rocket', 'woo-bd-partial-cod' ),
+			'nagad_merchant'  => array(
+				'label'  => __( 'Nagad (Merchant)', 'aam-partial-cod' ),
+				'action' => 'payment',
+			),
+			'nagad_personal'  => array(
+				'label'  => __( 'Nagad (Personal)', 'aam-partial-cod' ),
+				'action' => 'send',
+			),
+			'rocket_merchant' => array(
+				'label'  => __( 'Rocket (Merchant)', 'aam-partial-cod' ),
+				'action' => 'payment',
+			),
+			'rocket_personal' => array(
+				'label'  => __( 'Rocket (Personal)', 'aam-partial-cod' ),
 				'action' => 'send',
 			),
 		);
+	}
+
+	/**
+	 * Map of legacy single-account method keys to their new "personal" equivalents.
+	 *
+	 * Older versions stored Nagad/Rocket as a single "Send Money" method; those are
+	 * the personal-account variants now, so existing numbers/QR/instructions migrate
+	 * onto the *_personal keys. (bKash already had personal/merchant variants.)
+	 *
+	 * @return array<string,string> Old method key => new method key.
+	 */
+	public static function legacy_method_map() {
+		return array(
+			'nagad'  => 'nagad_personal',
+			'rocket' => 'rocket_personal',
+		);
+	}
+
+	/**
+	 * One-time migration: rename legacy Nagad/Rocket method settings (and their
+	 * visibility toggles) to the new *_personal keys, preserving the store's
+	 * configured numbers, QR images and instructions.
+	 *
+	 * Runs once per upgrade (guarded by a stored DB version) and is a no-op once
+	 * the legacy keys are gone.
+	 */
+	public static function migrate_legacy_method_keys() {
+		$map      = self::legacy_method_map();
+		$suffixes = array( '_enabled', '_number', '_qr', '_instructions' );
+
+		// Per-gateway method settings (both the partial and full gateways).
+		foreach ( array_keys( self::gateways() ) as $gateway_id ) {
+			$option   = 'woocommerce_' . $gateway_id . '_settings';
+			$settings = get_option( $option, array() );
+			if ( ! is_array( $settings ) || empty( $settings ) ) {
+				continue;
+			}
+
+			$changed = false;
+			foreach ( $map as $old => $new ) {
+				foreach ( $suffixes as $suffix ) {
+					$old_key = $old . $suffix;
+					if ( ! array_key_exists( $old_key, $settings ) ) {
+						continue;
+					}
+					$new_key = $new . $suffix;
+					if ( ! array_key_exists( $new_key, $settings ) ) {
+						$settings[ $new_key ] = $settings[ $old_key ];
+					}
+					unset( $settings[ $old_key ] );
+					$changed = true;
+				}
+			}
+
+			if ( $changed ) {
+				update_option( $option, $settings );
+			}
+		}
+
+		// Master visibility toggles.
+		$visibility = get_option( self::OPTION_VISIBILITY, array() );
+		if ( is_array( $visibility ) && isset( $visibility['methods'] ) && is_array( $visibility['methods'] ) ) {
+			$changed = false;
+			foreach ( $map as $old => $new ) {
+				if ( ! array_key_exists( $old, $visibility['methods'] ) ) {
+					continue;
+				}
+				if ( ! array_key_exists( $new, $visibility['methods'] ) ) {
+					$visibility['methods'][ $new ] = $visibility['methods'][ $old ];
+				}
+				unset( $visibility['methods'][ $old ] );
+				$changed = true;
+			}
+			if ( $changed ) {
+				update_option( self::OPTION_VISIBILITY, $visibility );
+			}
+		}
 	}
 
 	/**
@@ -242,8 +461,8 @@ class BD_PCOD_Helpers {
 	 */
 	public static function action_label( $action ) {
 		return 'payment' === $action
-			? __( 'Make Payment to', 'woo-bd-partial-cod' )
-			: __( 'Send Money to', 'woo-bd-partial-cod' );
+			? __( 'Make Payment to', 'aam-partial-cod' )
+			: __( 'Send Money to', 'aam-partial-cod' );
 	}
 
 	/**
@@ -254,9 +473,62 @@ class BD_PCOD_Helpers {
 	 */
 	public static function method_label( $method ) {
 		$config = self::get_methods_config();
-		return isset( $config[ $method ] )
-			? $config[ $method ]['label']
-			: ucwords( str_replace( '_', ' ', (string) $method ) );
+		if ( isset( $config[ $method ] ) ) {
+			return $config[ $method ]['label'];
+		}
+		// Bank account slots: resolve from enabled banks for a live label.
+		if ( 0 === strpos( $method, 'bank_' ) ) {
+			$banks = self::get_enabled_banks();
+			if ( isset( $banks[ $method ] ) && '' !== $banks[ $method ]['name'] ) {
+				return $banks[ $method ]['name'];
+			}
+		}
+		return ucwords( str_replace( '_', ' ', (string) $method ) );
+	}
+
+	/**
+	 * Return all enabled bank accounts configured on the bank transfer gateway.
+	 *
+	 * @return array[] Keyed by slot key (bank_1 … bank_5).
+	 */
+	public static function get_enabled_banks() {
+		$banks    = array();
+		$settings = self::get_settings( BD_PCOD_BANK_GATEWAY_ID );
+
+		for ( $i = 1; $i <= 5; $i++ ) {
+			$k = 'bank_' . $i;
+			if ( 'yes' !== ( isset( $settings[ $k . '_enabled' ] ) ? $settings[ $k . '_enabled' ] : 'no' ) ) {
+				continue;
+			}
+			$acct = trim( isset( $settings[ $k . '_account_number' ] ) ? $settings[ $k . '_account_number' ] : '' );
+			if ( '' === $acct ) {
+				continue;
+			}
+			$banks[ $k ] = array(
+				'name'           => trim( isset( $settings[ $k . '_name' ] ) ? $settings[ $k . '_name' ] : '' ),
+				'account_name'   => trim( isset( $settings[ $k . '_account_name' ] ) ? $settings[ $k . '_account_name' ] : '' ),
+				'account_number' => $acct,
+				'branch'         => trim( isset( $settings[ $k . '_branch' ] ) ? $settings[ $k . '_branch' ] : '' ),
+				'routing'        => trim( isset( $settings[ $k . '_routing' ] ) ? $settings[ $k . '_routing' ] : '' ),
+				'phone'          => trim( isset( $settings[ $k . '_phone' ] ) ? $settings[ $k . '_phone' ] : '' ),
+			);
+		}
+
+		return $banks;
+	}
+
+	/**
+	 * Sanitize a bank account confirmation entry.
+	 *
+	 * Accepts 4–30 digits (last few digits, or full account number).
+	 *
+	 * @param string $raw Raw input.
+	 * @return string|false Digits only, or false if invalid.
+	 */
+	public static function sanitize_bank_account( $raw ) {
+		$digits = preg_replace( '/\D+/', '', (string) $raw );
+		$len    = strlen( $digits );
+		return ( $len >= 4 && $len <= 30 ) ? $digits : false;
 	}
 
 	/**
@@ -267,12 +539,12 @@ class BD_PCOD_Helpers {
 	 */
 	public static function status_label( $status ) {
 		$labels = array(
-			self::STATUS_AWAITING  => __( 'Awaiting payment', 'woo-bd-partial-cod' ),
-			self::STATUS_SUBMITTED => __( 'Submitted — needs review', 'woo-bd-partial-cod' ),
-			self::STATUS_VERIFIED  => __( 'Verified', 'woo-bd-partial-cod' ),
-			self::STATUS_REJECTED  => __( 'Rejected', 'woo-bd-partial-cod' ),
+			self::STATUS_AWAITING  => __( 'Awaiting payment', 'aam-partial-cod' ),
+			self::STATUS_SUBMITTED => __( 'Submitted — needs review', 'aam-partial-cod' ),
+			self::STATUS_VERIFIED  => __( 'Verified', 'aam-partial-cod' ),
+			self::STATUS_REJECTED  => __( 'Rejected', 'aam-partial-cod' ),
 		);
-		return isset( $labels[ $status ] ) ? $labels[ $status ] : __( 'Unknown', 'woo-bd-partial-cod' );
+		return isset( $labels[ $status ] ) ? $labels[ $status ] : __( 'Unknown', 'aam-partial-cod' );
 	}
 
 	/**
@@ -286,6 +558,11 @@ class BD_PCOD_Helpers {
 		$source  = self::method_source_gateway( $gateway_id );
 
 		foreach ( self::get_methods_config() as $key => $config ) {
+			// Hidden by the master visibility settings — never offer it.
+			if ( ! self::is_method_visible( $key ) ) {
+				continue;
+			}
+
 			if ( 'yes' !== self::get_setting( $source, $key . '_enabled', 'no' ) ) {
 				continue;
 			}
@@ -351,55 +628,55 @@ class BD_PCOD_Helpers {
 		return array(
 			'checkout_notice'  => array(
 				'type'  => 'textarea',
-				'label' => __( 'Checkout notice', 'woo-bd-partial-cod' ),
+				'label' => __( 'Checkout notice', 'aam-partial-cod' ),
 			),
 			'pay_title'        => array(
 				'type'  => 'text',
-				'label' => __( 'Payment page title', 'woo-bd-partial-cod' ),
+				'label' => __( 'Payment page title', 'aam-partial-cod' ),
 			),
 			'pay_now_label'    => array(
 				'type'  => 'text',
-				'label' => __( '"Pay now" amount label', 'woo-bd-partial-cod' ),
+				'label' => __( '"Pay now" amount label', 'aam-partial-cod' ),
 			),
 			'remaining_label'  => array(
 				'type'  => 'text',
-				'label' => __( '"Remaining" amount label', 'woo-bd-partial-cod' ),
+				'label' => __( '"Remaining" amount label', 'aam-partial-cod' ),
 			),
 			'choose_method'    => array(
 				'type'  => 'text',
-				'label' => __( '"Choose payment method" label', 'woo-bd-partial-cod' ),
+				'label' => __( '"Choose payment method" label', 'aam-partial-cod' ),
 			),
 			'sender_label'     => array(
 				'type'  => 'text',
-				'label' => __( 'Sender number field label', 'woo-bd-partial-cod' ),
+				'label' => __( 'Sender number field label', 'aam-partial-cod' ),
 			),
 			'trxid_label'      => array(
 				'type'  => 'text',
-				'label' => __( 'Transaction ID field label', 'woo-bd-partial-cod' ),
+				'label' => __( 'Transaction ID field label', 'aam-partial-cod' ),
 			),
 			'submit_button'    => array(
 				'type'  => 'text',
-				'label' => __( 'Submit button text', 'woo-bd-partial-cod' ),
+				'label' => __( 'Submit button text', 'aam-partial-cod' ),
 			),
 			'footer'           => array(
 				'type'  => 'text',
-				'label' => __( 'Payment page footer note', 'woo-bd-partial-cod' ),
+				'label' => __( 'Payment page footer note', 'aam-partial-cod' ),
 			),
 			'status_verified'  => array(
 				'type'  => 'textarea',
-				'label' => __( 'Status message — verified', 'woo-bd-partial-cod' ),
+				'label' => __( 'Status message — verified', 'aam-partial-cod' ),
 			),
 			'status_submitted' => array(
 				'type'  => 'textarea',
-				'label' => __( 'Status message — submitted', 'woo-bd-partial-cod' ),
+				'label' => __( 'Status message — submitted', 'aam-partial-cod' ),
 			),
 			'status_pending'   => array(
 				'type'  => 'textarea',
-				'label' => __( 'Status message — not paid yet', 'woo-bd-partial-cod' ),
+				'label' => __( 'Status message — not paid yet', 'aam-partial-cod' ),
 			),
 			'pay_button'       => array(
 				'type'  => 'text',
-				'label' => __( '"Pay now" button text (thank-you page)', 'woo-bd-partial-cod' ),
+				'label' => __( '"Pay now" button text (thank-you page)', 'aam-partial-cod' ),
 			),
 		);
 	}
@@ -419,44 +696,44 @@ class BD_PCOD_Helpers {
 		switch ( $key ) {
 			case 'checkout_notice':
 				return $is_full
-					? __( 'You must pay the full amount of {amount} now via bKash/Nagad/Rocket to confirm this order.', 'woo-bd-partial-cod' )
-					: __( 'You must pay {amount} ({label}) now to confirm this order. The remaining balance is collected as cash on delivery.', 'woo-bd-partial-cod' );
+					? __( 'You must pay the full amount of {amount} now via bKash/Nagad/Rocket to confirm this order.', 'aam-partial-cod' )
+					: __( 'You must pay {amount} ({label}) now to confirm this order. The remaining balance is collected as cash on delivery.', 'aam-partial-cod' );
 			case 'pay_title':
 				return $is_full
-					? __( 'Complete your payment', 'woo-bd-partial-cod' )
-					: __( 'Confirm your order — pay the advance', 'woo-bd-partial-cod' );
+					? __( 'Complete your payment', 'aam-partial-cod' )
+					: __( 'Confirm your order — pay the advance', 'aam-partial-cod' );
 			case 'pay_now_label':
 				return $is_full
-					? __( 'Pay now to confirm', 'woo-bd-partial-cod' )
-					: __( 'Pay now to confirm', 'woo-bd-partial-cod' );
+					? __( 'Pay now to confirm', 'aam-partial-cod' )
+					: __( 'Pay now to confirm', 'aam-partial-cod' );
 			case 'remaining_label':
-				return __( 'Remaining (cash on delivery)', 'woo-bd-partial-cod' );
+				return __( 'Remaining (cash on delivery)', 'aam-partial-cod' );
 			case 'choose_method':
-				return __( 'Choose payment method', 'woo-bd-partial-cod' );
+				return __( 'Choose payment method', 'aam-partial-cod' );
 			case 'sender_label':
-				return __( 'Your sender mobile number', 'woo-bd-partial-cod' );
+				return __( 'Your sender mobile number', 'aam-partial-cod' );
 			case 'trxid_label':
-				return __( 'Transaction ID (TrxID)', 'woo-bd-partial-cod' );
+				return __( 'Transaction ID (TrxID)', 'aam-partial-cod' );
 			case 'submit_button':
-				return __( 'Submit & confirm order', 'woo-bd-partial-cod' );
+				return __( 'Submit & confirm order', 'aam-partial-cod' );
 			case 'footer':
 				return $is_full
-					? __( 'Your order stays unconfirmed until your payment is received and verified.', 'woo-bd-partial-cod' )
-					: __( 'Your order stays unconfirmed until the advance is paid and verified.', 'woo-bd-partial-cod' );
+					? __( 'Your order stays unconfirmed until your payment is received and verified.', 'aam-partial-cod' )
+					: __( 'Your order stays unconfirmed until the advance is paid and verified.', 'aam-partial-cod' );
 			case 'status_verified':
 				return $is_full
-					? __( 'Your payment has been verified. Your order is confirmed!', 'woo-bd-partial-cod' )
-					: __( 'Your advance payment has been verified. Your order is confirmed!', 'woo-bd-partial-cod' );
+					? __( 'Your payment has been verified. Your order is confirmed!', 'aam-partial-cod' )
+					: __( 'Your advance payment has been verified. Your order is confirmed!', 'aam-partial-cod' );
 			case 'status_submitted':
-				return __( 'Your payment details have been submitted and are awaiting verification. We will confirm your order shortly.', 'woo-bd-partial-cod' );
+				return __( 'Your payment details have been submitted and are awaiting verification. We will confirm your order shortly.', 'aam-partial-cod' );
 			case 'status_pending':
 				return $is_full
-					? __( 'Your order is NOT confirmed yet — your payment is still pending.', 'woo-bd-partial-cod' )
-					: __( 'Your order is NOT confirmed yet — the advance payment is still pending.', 'woo-bd-partial-cod' );
+					? __( 'Your order is NOT confirmed yet — your payment is still pending.', 'aam-partial-cod' )
+					: __( 'Your order is NOT confirmed yet — the advance payment is still pending.', 'aam-partial-cod' );
 			case 'pay_button':
 				return $is_full
-					? __( 'Pay now', 'woo-bd-partial-cod' )
-					: __( 'Pay the advance now', 'woo-bd-partial-cod' );
+					? __( 'Pay now', 'aam-partial-cod' )
+					: __( 'Pay the advance now', 'aam-partial-cod' );
 		}
 
 		return '';

@@ -1,30 +1,32 @@
 <?php
 /**
- * Plugin Name:       BD Partial COD Gateway
- * Plugin URI:        https://github.com/almahmud/custom-gateway
- * Description:        Collect a partial advance (equal to the delivery charge) or the full order total via bKash/Nagad/Rocket. Manual admin verification, no API keys required.
- * Version:           1.5.2
- * Author:            almahmud
+ * Plugin Name:       AAM Partial COD & Mobile Payment for WooCommerce
+ * Plugin URI:        https://github.com/almahmud/woo-bd-partial-cod
+ * Description:       Collect a partial advance (delivery charge) or the full order total via bKash/Nagad/Rocket. Manual admin verification, no API keys required. Bangladeshi Easy Payment Solution for WooCommerce.
+ * Version:           1.5.5
+ * Author:            almahmudbd
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       woo-bd-partial-cod
+ * Text Domain:       aam-partial-cod
  * Domain Path:       /languages
  * Requires at least: 6.0
  * Requires PHP:      7.4
+ * Requires Plugins:  woocommerce
  * WC requires at least: 7.0
  * WC tested up to:   9.0
  *
- * @package WooBDPartialCOD
+ * @package BDPartialCOD
  */
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'BD_PCOD_VERSION', '1.5.2' );
+define( 'BD_PCOD_VERSION', '1.5.5' );
 define( 'BD_PCOD_FILE', __FILE__ );
 define( 'BD_PCOD_PATH', plugin_dir_path( __FILE__ ) );
 define( 'BD_PCOD_URL', plugin_dir_url( __FILE__ ) );
 define( 'BD_PCOD_GATEWAY_ID', 'bd_partial_cod' );
 define( 'BD_PCOD_FULL_GATEWAY_ID', 'bd_full_mobile' );
+define( 'BD_PCOD_BANK_GATEWAY_ID', 'bd_bank_transfer' );
 
 /**
  * Declare High-Performance Order Storage (HPOS) compatibility.
@@ -47,8 +49,6 @@ add_action( 'plugins_loaded', 'bd_pcod_init' );
  * Initialise the plugin.
  */
 function bd_pcod_init() {
-	load_plugin_textdomain( 'woo-bd-partial-cod', false, dirname( plugin_basename( BD_PCOD_FILE ) ) . '/languages' );
-
 	if ( ! class_exists( 'WC_Payment_Gateway' ) ) {
 		add_action( 'admin_notices', 'bd_pcod_missing_wc_notice' );
 		return;
@@ -57,7 +57,11 @@ function bd_pcod_init() {
 	require_once BD_PCOD_PATH . 'includes/class-bd-pcod-helpers.php';
 	require_once BD_PCOD_PATH . 'includes/class-bd-pcod-gateway.php';
 	require_once BD_PCOD_PATH . 'includes/class-bd-pcod-full-gateway.php';
+	require_once BD_PCOD_PATH . 'includes/class-bd-pcod-bank-gateway.php';
 	require_once BD_PCOD_PATH . 'includes/class-bd-pcod-payment-page.php';
+
+	// Run one-time data migrations after a plugin update.
+	bd_pcod_maybe_upgrade();
 
 	// Register the gateway with WooCommerce.
 	add_filter( 'woocommerce_payment_gateways', 'bd_pcod_register_gateway' );
@@ -65,14 +69,34 @@ function bd_pcod_init() {
 	// Front-end payment page + AJAX submission handler.
 	BD_PCOD_Payment_Page::instance();
 
-	// Admin verification UI (only in wp-admin).
+	// Admin verification UI + settings page (only in wp-admin).
 	if ( is_admin() ) {
 		require_once BD_PCOD_PATH . 'includes/class-bd-pcod-admin.php';
 		BD_PCOD_Admin::instance();
+
+		require_once BD_PCOD_PATH . 'includes/class-bd-pcod-settings.php';
+		BD_PCOD_Settings::instance();
 	}
 
 	// Front-end assets.
 	add_action( 'wp_enqueue_scripts', 'bd_pcod_enqueue_frontend_assets' );
+}
+
+/**
+ * Run one-time upgrade routines when the stored DB version is behind the code.
+ *
+ * Keeps existing stores' configured numbers/QR/instructions intact when method
+ * keys change between releases (see BD_PCOD_Helpers::migrate_legacy_method_keys()).
+ */
+function bd_pcod_maybe_upgrade() {
+	$installed = (string) get_option( 'bd_pcod_db_version', '' );
+	if ( version_compare( $installed, BD_PCOD_VERSION, '>=' ) ) {
+		return;
+	}
+
+	BD_PCOD_Helpers::migrate_legacy_method_keys();
+
+	update_option( 'bd_pcod_db_version', BD_PCOD_VERSION );
 }
 
 /**
@@ -82,8 +106,15 @@ function bd_pcod_init() {
  * @return array
  */
 function bd_pcod_register_gateway( $gateways ) {
-	$gateways[] = 'BD_PCOD_Gateway';
-	$gateways[] = 'BD_PCOD_Full_Gateway';
+	if ( BD_PCOD_Helpers::is_gateway_visible( BD_PCOD_GATEWAY_ID ) ) {
+		$gateways[] = 'BD_PCOD_Gateway';
+	}
+	if ( BD_PCOD_Helpers::is_gateway_visible( BD_PCOD_FULL_GATEWAY_ID ) ) {
+		$gateways[] = 'BD_PCOD_Full_Gateway';
+	}
+	if ( BD_PCOD_Helpers::is_gateway_visible( BD_PCOD_BANK_GATEWAY_ID ) ) {
+		$gateways[] = 'BD_PCOD_Bank_Gateway';
+	}
 	return $gateways;
 }
 
@@ -110,6 +141,6 @@ function bd_pcod_enqueue_frontend_assets() {
  */
 function bd_pcod_missing_wc_notice() {
 	echo '<div class="notice notice-error"><p>';
-	echo esc_html__( 'BD Partial COD Gateway requires WooCommerce to be installed and active.', 'woo-bd-partial-cod' );
+	echo esc_html__( 'AAM Partial COD Gateway requires WooCommerce to be installed and active.', 'aam-partial-cod' );
 	echo '</p></div>';
 }

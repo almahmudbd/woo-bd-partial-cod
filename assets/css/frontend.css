@@ -337,7 +337,40 @@ body.bd-pcod-standalone {
 	border-color: #46b450;
 }
 
-/* Standalone gateway: nicer method panel, number, and copy button */
+/* Bank transfer — account detail rows */
+.bd-pcod-bank-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px 0;
+	border-bottom: 1px solid #edf0f4;
+	flex-wrap: wrap;
+}
+
+.bd-pcod-bank-row:last-child { border-bottom: 0; }
+
+.bd-pcod-bank-row__label {
+	flex: 0 0 130px;
+	font-size: 0.82em;
+	color: #6b7682;
+}
+
+.bd-pcod-bank-row__value {
+	flex: 1 1 auto;
+	font-size: 1em;
+	font-weight: 600;
+	background: #fff;
+	border: 1px dashed #c9d2dd;
+	padding: 4px 10px;
+	border-radius: 4px;
+	letter-spacing: 0.5px;
+}
+
+.bd-pcod-bank-row--acct .bd-pcod-bank-row__value {
+	font-size: 1.15em;
+	border-color: #2f6fed;
+	color: #1a3d8a;
+}
 .bd-pcod-standalone .bd-pcod-method-panel {
 	background: #f7f9fc;
 	border: 1.5px solid #e3e9f1;

@@ -19,7 +19,7 @@
  * @var string   $return_url
  * @var array    $js_data
  *
- * Override by copying to: yourtheme/woocommerce/woo-bd-partial-cod/pay-page.php
+ * Override by copying to: yourtheme/woocommerce/aam-partial-cod/pay-page.php
  *
  * @package WooBDPartialCOD
  */
@@ -32,7 +32,7 @@ defined( 'ABSPATH' ) || exit;
 	<meta charset="<?php bloginfo( 'charset' ); ?>" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<meta name="robots" content="noindex,nofollow" />
-	<title><?php esc_html_e( 'Complete your payment', 'woo-bd-partial-cod' ); ?></title>
+	<title><?php esc_html_e( 'Complete your payment', 'aam-partial-cod' ); ?></title>
 	<link rel="stylesheet" href="<?php echo esc_url( BD_PCOD_URL . 'assets/css/frontend.css?ver=' . BD_PCOD_VERSION ); ?>" />
 </head>
 <body class="bd-pcod-standalone">
@@ -47,7 +47,7 @@ defined( 'ABSPATH' ) || exit;
 			<span class="bd-pcod-gateway__order">
 				<?php
 				/* translators: %s: order number */
-				printf( esc_html__( 'Order #%s', 'woo-bd-partial-cod' ), esc_html( $order->get_order_number() ) );
+				printf( esc_html__( 'Order #%s', 'aam-partial-cod' ), esc_html( $order->get_order_number() ) );
 				?>
 			</span>
 		</header>
@@ -70,7 +70,7 @@ defined( 'ABSPATH' ) || exit;
 
 			<?php if ( empty( $methods ) ) : ?>
 				<div class="bd-pcod-alert bd-pcod-alert--info">
-					<?php esc_html_e( 'No payment methods are configured. Please contact the store.', 'woo-bd-partial-cod' ); ?>
+					<?php esc_html_e( 'No payment methods are configured. Please contact the store.', 'aam-partial-cod' ); ?>
 				</div>
 			<?php else : ?>
 
@@ -91,7 +91,7 @@ defined( 'ABSPATH' ) || exit;
 							<div class="bd-pcod-method-panel" data-method="<?php echo esc_attr( $key ); ?>"<?php echo ( $key === $default_method ) ? '' : ' hidden'; ?>>
 								<?php if ( ! empty( $method['qr'] ) ) : ?>
 									<div class="bd-pcod-qr">
-										<img src="<?php echo esc_url( $method['qr'] ); ?>" alt="<?php echo esc_attr( sprintf( /* translators: %s: method */ __( '%s QR code', 'woo-bd-partial-cod' ), $method['label'] ) ); ?>" />
+										<img src="<?php echo esc_url( $method['qr'] ); ?>" alt="<?php echo esc_attr( sprintf( /* translators: %s: method */ __( '%s QR code', 'aam-partial-cod' ), $method['label'] ) ); ?>" />
 									</div>
 								<?php endif; ?>
 
@@ -101,7 +101,7 @@ defined( 'ABSPATH' ) || exit;
 									</span>
 									<code class="bd-pcod-number__value"><?php echo esc_html( $method['number'] ); ?></code>
 									<button type="button" class="button bd-pcod-copy" data-copy="<?php echo esc_attr( $method['number'] ); ?>">
-										<?php esc_html_e( 'Copy', 'woo-bd-partial-cod' ); ?>
+										<?php esc_html_e( 'Copy', 'aam-partial-cod' ); ?>
 									</button>
 								</div>
 
@@ -115,9 +115,9 @@ defined( 'ABSPATH' ) || exit;
 					<p class="form-row form-row-wide">
 						<label for="bd-pcod-sender"><?php echo esc_html( BD_PCOD_Helpers::get_text( $gateway_id, 'sender_label' ) ); ?> <span class="required">*</span></label>
 						<input type="tel" id="bd-pcod-sender" name="sender_number" inputmode="numeric" maxlength="14"
-							placeholder="<?php echo esc_attr( 'partial' === $sender_mode ? __( 'Last 3-4 digits', 'woo-bd-partial-cod' ) : '01XXXXXXXXX' ); ?>" required />
+							placeholder="<?php echo esc_attr( 'partial' === $sender_mode ? __( 'Last 3-4 digits', 'aam-partial-cod' ) : '01XXXXXXXXX' ); ?>" required />
 						<?php if ( 'partial' === $sender_mode ) : ?>
-							<small class="bd-pcod-field-hint"><?php esc_html_e( 'You can enter just the last few digits of the number you paid from.', 'woo-bd-partial-cod' ); ?></small>
+							<small class="bd-pcod-field-hint"><?php esc_html_e( 'You can enter just the last few digits of the number you paid from.', 'aam-partial-cod' ); ?></small>
 						<?php endif; ?>
 					</p>
 
@@ -128,10 +128,10 @@ defined( 'ABSPATH' ) || exit;
 								<?php if ( 'required' === $collect_trxid ) : ?>
 									<span class="required">*</span>
 								<?php else : ?>
-									<span class="bd-pcod-optional">(<?php esc_html_e( 'optional', 'woo-bd-partial-cod' ); ?>)</span>
+									<span class="bd-pcod-optional">(<?php esc_html_e( 'optional', 'aam-partial-cod' ); ?>)</span>
 								<?php endif; ?>
 							</label>
-							<input type="text" id="bd-pcod-trxid" name="trxid" maxlength="40" placeholder="<?php esc_attr_e( 'e.g. 8N7A6B5C4D', 'woo-bd-partial-cod' ); ?>"<?php echo ( 'required' === $collect_trxid ) ? ' required' : ''; ?> />
+							<input type="text" id="bd-pcod-trxid" name="trxid" maxlength="40" placeholder="<?php esc_attr_e( 'e.g. 8N7A6B5C4D', 'aam-partial-cod' ); ?>"<?php echo ( 'required' === $collect_trxid ) ? ' required' : ''; ?> />
 						</p>
 					<?php endif; ?>
 

@@ -16,7 +16,7 @@
 $ErrorActionPreference = 'Stop'
 Set-Location -Path $PSScriptRoot
 
-$slug = 'woo-bd-partial-cod'
+$slug = 'aam-partial-cod'
 $main = "$slug.php"
 
 if (-not (Test-Path $main)) {
@@ -31,7 +31,7 @@ $version = if ($match) { $match.Matches[0].Groups[1].Value } else { 'dev' }
 $zip = Join-Path $PSScriptRoot "$slug-$version.zip"
 
 # The actual plugin payload - anything not listed here is left out of the ZIP.
-$include = @($main, 'README.md', 'includes', 'assets', 'templates')
+$include = @($main, 'readme.txt', 'README.md', 'license.txt', 'includes', 'assets', 'templates')
 if (Test-Path 'languages') { $include += 'languages' }
 
 # Gather every file to archive, with its ZIP entry name (slug/forward/slash/path).
@@ -40,7 +40,7 @@ foreach ($item in $include) {
 	if (-not (Test-Path $item)) { continue }
 
 	if (Test-Path $item -PathType Container) {
-		Get-ChildItem -Path $item -Recurse -File | ForEach-Object {
+		Get-ChildItem -Path $item -Recurse -File | Where-Object { $_.Name -notmatch '^(screenshot-\d+\.|icon-\d+x\d+\.)' } | ForEach-Object {
 			$rel = $_.FullName.Substring($PSScriptRoot.Length + 1) -replace '\\', '/'
 			$entries += [PSCustomObject]@{ Full = $_.FullName; Name = "$slug/$rel" }
 		}
