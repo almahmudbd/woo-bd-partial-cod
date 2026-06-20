@@ -1,9 +1,7 @@
 > **BrainSync Context Pumper** 🧠
-> Dynamically loaded for active file: `aam-partial-cod.php` (Domain: **Generic Logic**)
+> Dynamically loaded for active file: `.git\COMMIT_EDITMSG` (Domain: **Generic Logic**)
 
 ### 📐 Generic Logic Conventions & Fixes
-- **[what-changed] 🟢 Edited woo-bd-partial-cod.php (6 changes, 8min)**: Active editing session on woo-bd-partial-cod.php.
-6 content changes over 8 minutes.
 - **[discovery] discovery in .gitignore**: File updated (external): .gitignore
 
 Content summary (60 lines):
