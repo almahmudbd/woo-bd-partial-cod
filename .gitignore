@@ -67,3 +67,6 @@ CLAUDE.md
 /*.zip
 .brainsync/.context-key
 .brainsync/shared-context.json
+/.brainsync
+*.bak
+.mcp.json.bak
