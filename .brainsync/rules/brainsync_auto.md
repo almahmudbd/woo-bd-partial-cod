@@ -1,7 +1,7 @@
 
 
 # Project Memory — woo-bd-partial-cod
-> 27 notes | Score threshold: >40
+> 29 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
@@ -18,24 +18,24 @@
 
 **Stack:** Unknown stack
 
-## 📝 NOTE: 1 uncommitted file(s) in working tree.\n\n## Active: `.git`
+## 📝 NOTE: 1 uncommitted file(s) in working tree.\n\n## Active: `.`
 
+- **[.windsurfrules] **NEVER** run `git clean -fd` or `git reset --hard` without checking `git log` and verifying commits exist.**
+- **[CLAUDE.md] **NEVER** run `git clean -fd` or `git reset --hard` without checking `git log` and verifying commits exist.**
+- **🟢 Edited aam-partial-cod.php (25 changes, 1min)**
 - **convention in .gitignore**
-- **convention in .gitignore**
-- **convention in .gitignore**
-- **discovery in .gitignore**
 - **convention in .gitignore**
 
 ## Project Standards
 
 - [.windsurfrules] **NEVER** run `git clean -fd` or `git reset --hard` without checking `git log` and verifying commits exist.
-- convention in .gitignore
 - [CLAUDE.md] **NEVER** run `git clean -fd` or `git reset --hard` without checking `git log` and verifying commits exist.
 - convention in .gitignore
-- [.windsurfrules] NEVER use TailwindCSS. Only use vanilla CSS.
 - convention in .gitignore
-- Version your API from day 1 (/api/v1/)
-- Use consistent response format across all endpoints
+- [.windsurfrules] NEVER use TailwindCSS. Only use vanilla CSS.
+- [CLAUDE.md] NEVER use TailwindCSS. Only use vanilla CSS.
+- convention in .gitignore
+- convention in test report.txt
 
 ## Verified Best Practices
 

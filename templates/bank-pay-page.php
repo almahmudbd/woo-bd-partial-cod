@@ -10,7 +10,6 @@
  * @var string   $default_bank
  * @var string   $nonce
  * @var string   $return_url
- * @var array    $js_data
  *
  * @package BDPartialCOD
  */
@@ -23,9 +22,8 @@ defined( 'ABSPATH' ) || exit;
 	<meta charset="<?php bloginfo( 'charset' ); ?>" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<meta name="robots" content="noindex,nofollow" />
-	<title><?php esc_html_e( 'Complete your bank transfer', 'aam-partial-cod' ); ?></title>
-	<link rel="stylesheet" href="<?php echo esc_url( BD_PCOD_URL . 'assets/css/frontend.css?ver=' . BD_PCOD_VERSION ); ?>" /> <?php // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- Standalone full-document template outside WP theme context.
-?>
+	<title><?php esc_html_e( 'Complete your bank transfer', 'aam-bd-partial-cod-for-wc' ); ?></title>
+	<?php wp_print_styles( 'bd-pcod-frontend' ); ?>
 </head>
 <body class="bd-pcod-standalone">
 <div class="bd-pcod-gateway">
@@ -40,31 +38,31 @@ defined( 'ABSPATH' ) || exit;
 		<span class="bd-pcod-gateway__order">
 			<?php
 			/* translators: %s: order number */
-			printf( esc_html__( 'Order #%s', 'aam-partial-cod' ), esc_html( $order->get_order_number() ) );
+			printf( esc_html__( 'Order #%s', 'aam-bd-partial-cod-for-wc' ), esc_html( $order->get_order_number() ) );
 			?>
 		</span>
 	</header>
 
 	<main class="bd-pcod-gateway__body">
-		<h1 class="bd-pcod-title"><?php esc_html_e( 'Complete your bank transfer', 'aam-partial-cod' ); ?></h1>
+		<h1 class="bd-pcod-title"><?php esc_html_e( 'Complete your bank transfer', 'aam-bd-partial-cod-for-wc' ); ?></h1>
 
 		<div class="bd-pcod-amounts">
 			<p class="bd-pcod-amount-due">
-				<span><?php esc_html_e( 'Transfer amount', 'aam-partial-cod' ); ?></span>
+				<span><?php esc_html_e( 'Transfer amount', 'aam-bd-partial-cod-for-wc' ); ?></span>
 				<strong><?php echo wp_kses_post( wc_price( $total ) ); ?></strong>
 			</p>
 		</div>
 
 		<?php if ( empty( $banks ) ) : ?>
 			<div class="bd-pcod-alert bd-pcod-alert--info">
-				<?php esc_html_e( 'No bank accounts are configured. Please contact the store.', 'aam-partial-cod' ); ?>
+				<?php esc_html_e( 'No bank accounts are configured. Please contact the store.', 'aam-bd-partial-cod-for-wc' ); ?>
 			</div>
 		<?php else : ?>
 
 		<form class="bd-pcod-form" id="bd-pcod-bank-form">
 
 			<p class="form-row form-row-wide">
-				<label for="bd-pcod-bank"><?php esc_html_e( 'Select bank', 'aam-partial-cod' ); ?> <span class="required">*</span></label>
+				<label for="bd-pcod-bank"><?php esc_html_e( 'Select bank', 'aam-bd-partial-cod-for-wc' ); ?> <span class="required">*</span></label>
 				<select id="bd-pcod-bank" name="bank" required>
 					<?php foreach ( $banks as $bd_pcod_key => $bd_pcod_bank ) : // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template loop variable.
 					?>
@@ -82,21 +80,21 @@ defined( 'ABSPATH' ) || exit;
 
 					<?php
 					$bd_pcod_rows = array( // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variable.
-						__( 'Bank', 'aam-partial-cod' )           => $bd_pcod_bank['name'],
-						__( 'Account name', 'aam-partial-cod' )   => $bd_pcod_bank['account_name'],
-						__( 'Account number', 'aam-partial-cod' ) => $bd_pcod_bank['account_number'],
-						__( 'Branch', 'aam-partial-cod' )         => $bd_pcod_bank['branch'],
-						__( 'Routing number', 'aam-partial-cod' ) => $bd_pcod_bank['routing'],
-						__( 'Phone', 'aam-partial-cod' )          => $bd_pcod_bank['phone'],
+						__( 'Bank', 'aam-bd-partial-cod-for-wc' )           => $bd_pcod_bank['name'],
+						__( 'Account name', 'aam-bd-partial-cod-for-wc' )   => $bd_pcod_bank['account_name'],
+						__( 'Account number', 'aam-bd-partial-cod-for-wc' ) => $bd_pcod_bank['account_number'],
+						__( 'Branch', 'aam-bd-partial-cod-for-wc' )         => $bd_pcod_bank['branch'],
+						__( 'Routing number', 'aam-bd-partial-cod-for-wc' ) => $bd_pcod_bank['routing'],
+						__( 'Phone', 'aam-bd-partial-cod-for-wc' )          => $bd_pcod_bank['phone'],
 					);
 					foreach ( $bd_pcod_rows as $bd_pcod_label => $bd_pcod_value ) : // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template loop variable.
 						if ( '' === $bd_pcod_value ) continue;
 						?>
-						<div class="bd-pcod-bank-row<?php echo ( __( 'Account number', 'aam-partial-cod' ) === $bd_pcod_label ) ? ' bd-pcod-bank-row--acct' : ''; ?>">
+						<div class="bd-pcod-bank-row<?php echo ( __( 'Account number', 'aam-bd-partial-cod-for-wc' ) === $bd_pcod_label ) ? ' bd-pcod-bank-row--acct' : ''; ?>">
 							<span class="bd-pcod-bank-row__label"><?php echo esc_html( $bd_pcod_label ); ?></span>
 							<code class="bd-pcod-bank-row__value"><?php echo esc_html( $bd_pcod_value ); ?></code>
 							<button type="button" class="button bd-pcod-copy" data-copy="<?php echo esc_attr( $bd_pcod_value ); ?>">
-								<?php esc_html_e( 'Copy', 'aam-partial-cod' ); ?>
+								<?php esc_html_e( 'Copy', 'aam-bd-partial-cod-for-wc' ); ?>
 							</button>
 						</div>
 					<?php endforeach; ?>
@@ -107,14 +105,14 @@ defined( 'ABSPATH' ) || exit;
 
 			<p class="form-row form-row-wide">
 				<label for="bd-pcod-acct-confirm">
-					<?php esc_html_e( 'Your account number (or last 4 digits)', 'aam-partial-cod' ); ?>
+					<?php esc_html_e( 'Your account number (or last 4 digits)', 'aam-bd-partial-cod-for-wc' ); ?>
 					<span class="required">*</span>
 				</label>
 				<input type="text" id="bd-pcod-acct-confirm" name="account_confirm"
 					inputmode="numeric" maxlength="30"
-					placeholder="<?php esc_attr_e( 'e.g. last 4 digits: 5678', 'aam-partial-cod' ); ?>" required />
+					placeholder="<?php esc_attr_e( 'e.g. last 4 digits: 5678', 'aam-bd-partial-cod-for-wc' ); ?>" required />
 				<small class="bd-pcod-field-hint">
-					<?php esc_html_e( 'Enter the account number you are transferring FROM, or just the last 4 digits.', 'aam-partial-cod' ); ?>
+					<?php esc_html_e( 'Enter the account number you are transferring FROM, or just the last 4 digits.', 'aam-bd-partial-cod-for-wc' ); ?>
 				</small>
 			</p>
 
@@ -124,7 +122,7 @@ defined( 'ABSPATH' ) || exit;
 
 			<p class="form-row">
 				<button type="submit" class="button alt bd-pcod-submit">
-					<?php esc_html_e( 'Confirm transfer & submit', 'aam-partial-cod' ); ?>
+					<?php esc_html_e( 'Confirm transfer & submit', 'aam-bd-partial-cod-for-wc' ); ?>
 				</button>
 			</p>
 
@@ -135,15 +133,11 @@ defined( 'ABSPATH' ) || exit;
 	</main>
 
 	<footer class="bd-pcod-gateway__foot">
-		<?php esc_html_e( 'Your order stays unconfirmed until your bank transfer is verified.', 'aam-partial-cod' ); ?>
+		<?php esc_html_e( 'Your order stays unconfirmed until your bank transfer is verified.', 'aam-bd-partial-cod-for-wc' ); ?>
 	</footer>
 
 </div>
-<script src="<?php echo esc_url( includes_url( 'js/jquery/jquery.min.js' ) ); ?>" ><?php // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- Standalone full-document template outside WP theme context.
-?></script>
-<script>window.bdPcod = <?php echo wp_json_encode( $js_data ); ?>;</script>
-<script src="<?php echo esc_url( BD_PCOD_URL . 'assets/js/frontend.js?ver=' . BD_PCOD_VERSION ); ?>" ><?php // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- Standalone full-document template outside WP theme context.
-?></script>
+<?php wp_print_scripts( 'bd-pcod-frontend' ); ?>
 </body>
 </html>
 <?php exit; ?>

@@ -38,9 +38,7 @@
 
 		// AJAX submission of the sender details.
 		var $form = $('#bd-pcod-form');
-		if (!$form.length) {
-			return;
-		}
+		if ($form.length) {
 
 		// Instantly show only the selected method's details.
 		function showSelectedMethod() {
@@ -141,6 +139,8 @@
 					$submit.prop('disabled', false);
 				});
 		});
+		} // end sender form (#bd-pcod-form)
+
 	// ── Bank transfer form ──────────────────────────────────────────────────
 	var $bankForm = $('#bd-pcod-bank-form');
 	if ( $bankForm.length ) {

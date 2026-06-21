@@ -56,7 +56,7 @@ class BD_PCOD_Admin {
 
 		add_meta_box(
 			'bd_pcod_metabox',
-			__( 'Advance Payment (AAM Partial COD)', 'aam-partial-cod' ),
+			__( 'Advance Payment (AAM Partial COD)', 'aam-bd-partial-cod-for-wc' ),
 			array( $this, 'render_metabox' ),
 			$screen,
 			'side',
@@ -73,7 +73,7 @@ class BD_PCOD_Admin {
 		$order = ( $post_or_order instanceof WC_Order ) ? $post_or_order : wc_get_order( $post_or_order->ID );
 
 		if ( ! BD_PCOD_Helpers::is_our_order( $order ) ) {
-			echo '<p>' . esc_html__( 'This order did not use the AAM Partial COD gateway.', 'aam-partial-cod' ) . '</p>';
+			echo '<p>' . esc_html__( 'This order did not use the AAM Partial COD gateway.', 'aam-bd-partial-cod-for-wc' ) . '</p>';
 			return;
 		}
 
@@ -89,18 +89,18 @@ class BD_PCOD_Admin {
 
 		printf(
 			'<p><strong>%s:</strong> %s</p>',
-			esc_html__( 'Status', 'aam-partial-cod' ),
+			esc_html__( 'Status', 'aam-bd-partial-cod-for-wc' ),
 			esc_html( BD_PCOD_Helpers::status_label( $status ) )
 		);
 		printf(
 			'<p><strong>%s:</strong> %s</p>',
-			$is_full ? esc_html__( 'Amount due', 'aam-partial-cod' ) : esc_html__( 'Advance due', 'aam-partial-cod' ),
+			$is_full ? esc_html__( 'Amount due', 'aam-bd-partial-cod-for-wc' ) : esc_html__( 'Advance due', 'aam-bd-partial-cod-for-wc' ),
 			wp_kses_post( wc_price( $advance ) )
 		);
 		if ( ! $is_full ) {
 			printf(
 				'<p><strong>%s:</strong> %s</p>',
-				esc_html__( 'Remaining (COD)', 'aam-partial-cod' ),
+				esc_html__( 'Remaining (COD)', 'aam-bd-partial-cod-for-wc' ),
 				wp_kses_post( wc_price( $remaining ) )
 			);
 		}
@@ -108,21 +108,21 @@ class BD_PCOD_Admin {
 		if ( $method ) {
 			printf(
 				'<p><strong>%s:</strong> %s</p>',
-				esc_html__( 'Method', 'aam-partial-cod' ),
+				esc_html__( 'Method', 'aam-bd-partial-cod-for-wc' ),
 				esc_html( BD_PCOD_Helpers::method_label( $method ) )
 			);
 		}
 		if ( $sender ) {
 			printf(
 				'<p><strong>%s:</strong> <code>%s</code></p>',
-				esc_html__( 'Sender number', 'aam-partial-cod' ),
+				esc_html__( 'Sender number', 'aam-bd-partial-cod-for-wc' ),
 				esc_html( $sender )
 			);
 		}
 		if ( $trxid ) {
 			printf(
 				'<p><strong>%s:</strong> <code>%s</code></p>',
-				esc_html__( 'Transaction ID', 'aam-partial-cod' ),
+				esc_html__( 'Transaction ID', 'aam-bd-partial-cod-for-wc' ),
 				esc_html( $trxid )
 			);
 		}
@@ -141,16 +141,16 @@ class BD_PCOD_Admin {
 			printf(
 				'<a href="%s" class="button button-primary">%s</a> ',
 				esc_url( $verify_url ),
-				esc_html__( 'Verify payment', 'aam-partial-cod' )
+				esc_html__( 'Verify payment', 'aam-bd-partial-cod-for-wc' )
 			);
 			printf(
 				'<a href="%s" class="button">%s</a>',
 				esc_url( $reject_url ),
-				esc_html__( 'Reject', 'aam-partial-cod' )
+				esc_html__( 'Reject', 'aam-bd-partial-cod-for-wc' )
 			);
 			echo '</p>';
 		} elseif ( BD_PCOD_Helpers::STATUS_AWAITING === $status ) {
-			echo '<p class="description">' . esc_html__( 'The customer has not submitted payment details yet.', 'aam-partial-cod' ) . '</p>';
+			echo '<p class="description">' . esc_html__( 'The customer has not submitted payment details yet.', 'aam-bd-partial-cod-for-wc' ) . '</p>';
 		}
 
 		echo '</div>';
@@ -164,14 +164,14 @@ class BD_PCOD_Admin {
 		$action   = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : '';
 
 		if ( ! current_user_can( 'edit_shop_orders' ) ) {
-			wp_die( esc_html__( 'You do not have permission to do this.', 'aam-partial-cod' ) );
+			wp_die( esc_html__( 'You do not have permission to do this.', 'aam-bd-partial-cod-for-wc' ) );
 		}
 
 		check_admin_referer( 'bd_pcod_action_' . $order_id );
 
 		$order = $order_id ? wc_get_order( $order_id ) : false;
 		if ( ! $order || ! BD_PCOD_Helpers::is_our_order( $order ) ) {
-			wp_die( esc_html__( 'Order not found.', 'aam-partial-cod' ) );
+			wp_die( esc_html__( 'Order not found.', 'aam-bd-partial-cod-for-wc' ) );
 		}
 
 		$advance   = wc_price( (float) $order->get_meta( BD_PCOD_Helpers::META_ADVANCE ) );
@@ -185,14 +185,14 @@ class BD_PCOD_Admin {
 			$note = $is_full
 				? sprintf(
 					/* translators: 1: amount, 2: method, 3: sender */
-					__( 'Payment %1$s verified (%2$s, sender %3$s). Order confirmed.', 'aam-partial-cod' ),
+					__( 'Payment %1$s verified (%2$s, sender %3$s). Order confirmed.', 'aam-bd-partial-cod-for-wc' ),
 					$advance,
 					$method,
 					$sender
 				)
 				: sprintf(
 					/* translators: 1: amount, 2: method, 3: sender, 4: remaining */
-					__( 'Advance %1$s verified (%2$s, sender %3$s). %4$s due as cash on delivery.', 'aam-partial-cod' ),
+					__( 'Advance %1$s verified (%2$s, sender %3$s). %4$s due as cash on delivery.', 'aam-bd-partial-cod-for-wc' ),
 					$advance,
 					$method,
 					$sender,
@@ -203,7 +203,7 @@ class BD_PCOD_Admin {
 		} else {
 			$order->update_meta_data( BD_PCOD_Helpers::META_STATUS, BD_PCOD_Helpers::STATUS_REJECTED );
 			$order->add_order_note(
-				__( 'Advance payment could not be verified. Please contact the customer.', 'aam-partial-cod' )
+				__( 'Advance payment could not be verified. Please contact the customer.', 'aam-bd-partial-cod-for-wc' )
 			);
 			$order->update_status( 'pending' );
 		}
@@ -225,12 +225,12 @@ class BD_PCOD_Admin {
 		foreach ( $columns as $key => $label ) {
 			$new[ $key ] = $label;
 			if ( 'order_status' === $key ) {
-				$new['bd_pcod_advance'] = __( 'Mobile payment', 'aam-partial-cod' );
+				$new['bd_pcod_advance'] = __( 'Mobile payment', 'aam-bd-partial-cod-for-wc' );
 			}
 		}
 		// Fallback if order_status column was not present.
 		if ( ! isset( $new['bd_pcod_advance'] ) ) {
-			$new['bd_pcod_advance'] = __( 'Mobile payment', 'aam-partial-cod' );
+			$new['bd_pcod_advance'] = __( 'Mobile payment', 'aam-bd-partial-cod-for-wc' );
 		}
 		return $new;
 	}

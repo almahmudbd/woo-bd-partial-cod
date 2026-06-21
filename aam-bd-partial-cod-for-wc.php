@@ -1,13 +1,13 @@
 <?php
 /**
  * Plugin Name:       AAM Partial COD & Mobile Payment for WooCommerce
- * Plugin URI:        https://github.com/almahmud/woo-bd-partial-cod
+ * Plugin URI:        https://github.com/almahmudbd/woo-bd-partial-cod
  * Description:       Collect a partial advance (delivery charge) or the full order total via bKash/Nagad/Rocket. Manual admin verification, no API keys required. Bangladeshi Easy Payment Solution for WooCommerce.
- * Version:           1.5.5
+ * Version:           1.5.6
  * Author:            almahmudbd
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       aam-partial-cod
+ * Text Domain:       aam-bd-partial-cod-for-wc
  * Domain Path:       /languages
  * Requires at least: 6.0
  * Requires PHP:      7.4
@@ -20,7 +20,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'BD_PCOD_VERSION', '1.5.5' );
+define( 'BD_PCOD_VERSION', '1.5.6' );
 define( 'BD_PCOD_FILE', __FILE__ );
 define( 'BD_PCOD_PATH', plugin_dir_path( __FILE__ ) );
 define( 'BD_PCOD_URL', plugin_dir_url( __FILE__ ) );
@@ -141,6 +141,6 @@ function bd_pcod_enqueue_frontend_assets() {
  */
 function bd_pcod_missing_wc_notice() {
 	echo '<div class="notice notice-error"><p>';
-	echo esc_html__( 'AAM Partial COD Gateway requires WooCommerce to be installed and active.', 'aam-partial-cod' );
+	echo esc_html__( 'AAM Partial COD Gateway requires WooCommerce to be installed and active.', 'aam-bd-partial-cod-for-wc' );
 	echo '</p></div>';
 }

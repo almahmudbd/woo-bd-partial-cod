@@ -66,9 +66,9 @@ class BD_PCOD_Helpers {
 	 */
 	public static function gateway_label( $gateway_id ) {
 		$labels = array(
-			BD_PCOD_GATEWAY_ID      => __( 'AAM Partial COD (bKash/Nagad/Rocket)', 'aam-partial-cod' ),
-			BD_PCOD_FULL_GATEWAY_ID => __( 'Full Mobile Payment (bKash/Nagad/Rocket)', 'aam-partial-cod' ),
-			BD_PCOD_BANK_GATEWAY_ID => __( 'Manual Bank Transfer', 'aam-partial-cod' ),
+			BD_PCOD_GATEWAY_ID      => __( 'AAM Partial COD (bKash/Nagad/Rocket)', 'aam-bd-partial-cod-for-wc' ),
+			BD_PCOD_FULL_GATEWAY_ID => __( 'Full Mobile Payment (bKash/Nagad/Rocket)', 'aam-bd-partial-cod-for-wc' ),
+			BD_PCOD_BANK_GATEWAY_ID => __( 'Manual Bank Transfer', 'aam-bd-partial-cod-for-wc' ),
 		);
 		return isset( $labels[ $gateway_id ] ) ? $labels[ $gateway_id ] : $gateway_id;
 	}
@@ -132,9 +132,13 @@ class BD_PCOD_Helpers {
 	 * @return string
 	 */
 	public static function default_icon( $gateway_id ) {
-		$file = ( self::MODE_FULL === self::gateway_mode( $gateway_id ) )
-			? 'assets/desi-gateways.jpg'
-			: 'assets/cod-icon.png';
+		if ( BD_PCOD_BANK_GATEWAY_ID === $gateway_id ) {
+			$file = 'assets/bank-icon.png';
+		} elseif ( self::MODE_FULL === self::gateway_mode( $gateway_id ) ) {
+			$file = 'assets/desi-gateways.jpg';
+		} else {
+			$file = 'assets/cod-icon.png';
+		}
 
 		return BD_PCOD_URL . $file;
 	}
@@ -350,27 +354,27 @@ class BD_PCOD_Helpers {
 	public static function get_methods_config() {
 		return array(
 			'bkash_merchant'  => array(
-				'label'  => __( 'bKash (Merchant)', 'aam-partial-cod' ),
+				'label'  => __( 'bKash (Merchant)', 'aam-bd-partial-cod-for-wc' ),
 				'action' => 'payment',
 			),
 			'bkash_personal'  => array(
-				'label'  => __( 'bKash (Personal)', 'aam-partial-cod' ),
+				'label'  => __( 'bKash (Personal)', 'aam-bd-partial-cod-for-wc' ),
 				'action' => 'send',
 			),
 			'nagad_merchant'  => array(
-				'label'  => __( 'Nagad (Merchant)', 'aam-partial-cod' ),
+				'label'  => __( 'Nagad (Merchant)', 'aam-bd-partial-cod-for-wc' ),
 				'action' => 'payment',
 			),
 			'nagad_personal'  => array(
-				'label'  => __( 'Nagad (Personal)', 'aam-partial-cod' ),
+				'label'  => __( 'Nagad (Personal)', 'aam-bd-partial-cod-for-wc' ),
 				'action' => 'send',
 			),
 			'rocket_merchant' => array(
-				'label'  => __( 'Rocket (Merchant)', 'aam-partial-cod' ),
+				'label'  => __( 'Rocket (Merchant)', 'aam-bd-partial-cod-for-wc' ),
 				'action' => 'payment',
 			),
 			'rocket_personal' => array(
-				'label'  => __( 'Rocket (Personal)', 'aam-partial-cod' ),
+				'label'  => __( 'Rocket (Personal)', 'aam-bd-partial-cod-for-wc' ),
 				'action' => 'send',
 			),
 		);
@@ -461,8 +465,8 @@ class BD_PCOD_Helpers {
 	 */
 	public static function action_label( $action ) {
 		return 'payment' === $action
-			? __( 'Make Payment to', 'aam-partial-cod' )
-			: __( 'Send Money to', 'aam-partial-cod' );
+			? __( 'Make Payment to', 'aam-bd-partial-cod-for-wc' )
+			: __( 'Send Money to', 'aam-bd-partial-cod-for-wc' );
 	}
 
 	/**
@@ -539,12 +543,12 @@ class BD_PCOD_Helpers {
 	 */
 	public static function status_label( $status ) {
 		$labels = array(
-			self::STATUS_AWAITING  => __( 'Awaiting payment', 'aam-partial-cod' ),
-			self::STATUS_SUBMITTED => __( 'Submitted — needs review', 'aam-partial-cod' ),
-			self::STATUS_VERIFIED  => __( 'Verified', 'aam-partial-cod' ),
-			self::STATUS_REJECTED  => __( 'Rejected', 'aam-partial-cod' ),
+			self::STATUS_AWAITING  => __( 'Awaiting payment', 'aam-bd-partial-cod-for-wc' ),
+			self::STATUS_SUBMITTED => __( 'Submitted — needs review', 'aam-bd-partial-cod-for-wc' ),
+			self::STATUS_VERIFIED  => __( 'Verified', 'aam-bd-partial-cod-for-wc' ),
+			self::STATUS_REJECTED  => __( 'Rejected', 'aam-bd-partial-cod-for-wc' ),
 		);
-		return isset( $labels[ $status ] ) ? $labels[ $status ] : __( 'Unknown', 'aam-partial-cod' );
+		return isset( $labels[ $status ] ) ? $labels[ $status ] : __( 'Unknown', 'aam-bd-partial-cod-for-wc' );
 	}
 
 	/**
@@ -628,55 +632,55 @@ class BD_PCOD_Helpers {
 		return array(
 			'checkout_notice'  => array(
 				'type'  => 'textarea',
-				'label' => __( 'Checkout notice', 'aam-partial-cod' ),
+				'label' => __( 'Checkout notice', 'aam-bd-partial-cod-for-wc' ),
 			),
 			'pay_title'        => array(
 				'type'  => 'text',
-				'label' => __( 'Payment page title', 'aam-partial-cod' ),
+				'label' => __( 'Payment page title', 'aam-bd-partial-cod-for-wc' ),
 			),
 			'pay_now_label'    => array(
 				'type'  => 'text',
-				'label' => __( '"Pay now" amount label', 'aam-partial-cod' ),
+				'label' => __( '"Pay now" amount label', 'aam-bd-partial-cod-for-wc' ),
 			),
 			'remaining_label'  => array(
 				'type'  => 'text',
-				'label' => __( '"Remaining" amount label', 'aam-partial-cod' ),
+				'label' => __( '"Remaining" amount label', 'aam-bd-partial-cod-for-wc' ),
 			),
 			'choose_method'    => array(
 				'type'  => 'text',
-				'label' => __( '"Choose payment method" label', 'aam-partial-cod' ),
+				'label' => __( '"Choose payment method" label', 'aam-bd-partial-cod-for-wc' ),
 			),
 			'sender_label'     => array(
 				'type'  => 'text',
-				'label' => __( 'Sender number field label', 'aam-partial-cod' ),
+				'label' => __( 'Sender number field label', 'aam-bd-partial-cod-for-wc' ),
 			),
 			'trxid_label'      => array(
 				'type'  => 'text',
-				'label' => __( 'Transaction ID field label', 'aam-partial-cod' ),
+				'label' => __( 'Transaction ID field label', 'aam-bd-partial-cod-for-wc' ),
 			),
 			'submit_button'    => array(
 				'type'  => 'text',
-				'label' => __( 'Submit button text', 'aam-partial-cod' ),
+				'label' => __( 'Submit button text', 'aam-bd-partial-cod-for-wc' ),
 			),
 			'footer'           => array(
 				'type'  => 'text',
-				'label' => __( 'Payment page footer note', 'aam-partial-cod' ),
+				'label' => __( 'Payment page footer note', 'aam-bd-partial-cod-for-wc' ),
 			),
 			'status_verified'  => array(
 				'type'  => 'textarea',
-				'label' => __( 'Status message — verified', 'aam-partial-cod' ),
+				'label' => __( 'Status message — verified', 'aam-bd-partial-cod-for-wc' ),
 			),
 			'status_submitted' => array(
 				'type'  => 'textarea',
-				'label' => __( 'Status message — submitted', 'aam-partial-cod' ),
+				'label' => __( 'Status message — submitted', 'aam-bd-partial-cod-for-wc' ),
 			),
 			'status_pending'   => array(
 				'type'  => 'textarea',
-				'label' => __( 'Status message — not paid yet', 'aam-partial-cod' ),
+				'label' => __( 'Status message — not paid yet', 'aam-bd-partial-cod-for-wc' ),
 			),
 			'pay_button'       => array(
 				'type'  => 'text',
-				'label' => __( '"Pay now" button text (thank-you page)', 'aam-partial-cod' ),
+				'label' => __( '"Pay now" button text (thank-you page)', 'aam-bd-partial-cod-for-wc' ),
 			),
 		);
 	}
@@ -696,44 +700,44 @@ class BD_PCOD_Helpers {
 		switch ( $key ) {
 			case 'checkout_notice':
 				return $is_full
-					? __( 'You must pay the full amount of {amount} now via bKash/Nagad/Rocket to confirm this order.', 'aam-partial-cod' )
-					: __( 'You must pay {amount} ({label}) now to confirm this order. The remaining balance is collected as cash on delivery.', 'aam-partial-cod' );
+					? __( 'You must pay the full amount of {amount} now via bKash/Nagad/Rocket to confirm this order.', 'aam-bd-partial-cod-for-wc' )
+					: __( 'You must pay {amount} ({label}) now to confirm this order. The remaining balance is collected as cash on delivery.', 'aam-bd-partial-cod-for-wc' );
 			case 'pay_title':
 				return $is_full
-					? __( 'Complete your payment', 'aam-partial-cod' )
-					: __( 'Confirm your order — pay the advance', 'aam-partial-cod' );
+					? __( 'Complete your payment', 'aam-bd-partial-cod-for-wc' )
+					: __( 'Confirm your order — pay the advance', 'aam-bd-partial-cod-for-wc' );
 			case 'pay_now_label':
 				return $is_full
-					? __( 'Pay now to confirm', 'aam-partial-cod' )
-					: __( 'Pay now to confirm', 'aam-partial-cod' );
+					? __( 'Pay now to confirm', 'aam-bd-partial-cod-for-wc' )
+					: __( 'Pay now to confirm', 'aam-bd-partial-cod-for-wc' );
 			case 'remaining_label':
-				return __( 'Remaining (cash on delivery)', 'aam-partial-cod' );
+				return __( 'Remaining (cash on delivery)', 'aam-bd-partial-cod-for-wc' );
 			case 'choose_method':
-				return __( 'Choose payment method', 'aam-partial-cod' );
+				return __( 'Choose payment method', 'aam-bd-partial-cod-for-wc' );
 			case 'sender_label':
-				return __( 'Your sender mobile number', 'aam-partial-cod' );
+				return __( 'Your sender mobile number', 'aam-bd-partial-cod-for-wc' );
 			case 'trxid_label':
-				return __( 'Transaction ID (TrxID)', 'aam-partial-cod' );
+				return __( 'Transaction ID (TrxID)', 'aam-bd-partial-cod-for-wc' );
 			case 'submit_button':
-				return __( 'Submit & confirm order', 'aam-partial-cod' );
+				return __( 'Submit & confirm order', 'aam-bd-partial-cod-for-wc' );
 			case 'footer':
 				return $is_full
-					? __( 'Your order stays unconfirmed until your payment is received and verified.', 'aam-partial-cod' )
-					: __( 'Your order stays unconfirmed until the advance is paid and verified.', 'aam-partial-cod' );
+					? __( 'Your order stays unconfirmed until your payment is received and verified.', 'aam-bd-partial-cod-for-wc' )
+					: __( 'Your order stays unconfirmed until the advance is paid and verified.', 'aam-bd-partial-cod-for-wc' );
 			case 'status_verified':
 				return $is_full
-					? __( 'Your payment has been verified. Your order is confirmed!', 'aam-partial-cod' )
-					: __( 'Your advance payment has been verified. Your order is confirmed!', 'aam-partial-cod' );
+					? __( 'Your payment has been verified. Your order is confirmed!', 'aam-bd-partial-cod-for-wc' )
+					: __( 'Your advance payment has been verified. Your order is confirmed!', 'aam-bd-partial-cod-for-wc' );
 			case 'status_submitted':
-				return __( 'Your payment details have been submitted and are awaiting verification. We will confirm your order shortly.', 'aam-partial-cod' );
+				return __( 'Your payment details have been submitted and are awaiting verification. We will confirm your order shortly.', 'aam-bd-partial-cod-for-wc' );
 			case 'status_pending':
 				return $is_full
-					? __( 'Your order is NOT confirmed yet — your payment is still pending.', 'aam-partial-cod' )
-					: __( 'Your order is NOT confirmed yet — the advance payment is still pending.', 'aam-partial-cod' );
+					? __( 'Your order is NOT confirmed yet — your payment is still pending.', 'aam-bd-partial-cod-for-wc' )
+					: __( 'Your order is NOT confirmed yet — the advance payment is still pending.', 'aam-bd-partial-cod-for-wc' );
 			case 'pay_button':
 				return $is_full
-					? __( 'Pay now', 'aam-partial-cod' )
-					: __( 'Pay the advance now', 'aam-partial-cod' );
+					? __( 'Pay now', 'aam-bd-partial-cod-for-wc' )
+					: __( 'Pay the advance now', 'aam-bd-partial-cod-for-wc' );
 		}
 
 		return '';

@@ -77,8 +77,8 @@ abstract class BD_PCOD_Gateway_Base extends WC_Payment_Gateway {
 	 */
 	protected function get_default_title() {
 		return $this->is_full_mode()
-			? __( 'Mobile Payment (bKash/Nagad/Rocket)', 'aam-partial-cod' )
-			: __( 'Cash on Delivery (advance required)', 'aam-partial-cod' );
+			? __( 'Mobile Payment (bKash/Nagad/Rocket)', 'aam-bd-partial-cod-for-wc' )
+			: __( 'Cash on Delivery (advance required)', 'aam-bd-partial-cod-for-wc' );
 	}
 
 	/**
@@ -88,8 +88,8 @@ abstract class BD_PCOD_Gateway_Base extends WC_Payment_Gateway {
 	 */
 	protected function get_default_description() {
 		return $this->is_full_mode()
-			? __( 'Pay the full amount via bKash/Nagad/Rocket. Your order is confirmed once we verify the payment.', 'aam-partial-cod' )
-			: __( 'Confirm your order by paying a small advance via bKash/Nagad/Rocket. Pay the rest as cash on delivery.', 'aam-partial-cod' );
+			? __( 'Pay the full amount via bKash/Nagad/Rocket. Your order is confirmed once we verify the payment.', 'aam-bd-partial-cod-for-wc' )
+			: __( 'Confirm your order by paying a small advance via bKash/Nagad/Rocket. Pay the rest as cash on delivery.', 'aam-bd-partial-cod-for-wc' );
 	}
 
 	/**
@@ -98,29 +98,29 @@ abstract class BD_PCOD_Gateway_Base extends WC_Payment_Gateway {
 	public function init_form_fields() {
 		$fields = array(
 			'enabled'     => array(
-				'title'   => __( 'Enable/Disable', 'aam-partial-cod' ),
+				'title'   => __( 'Enable/Disable', 'aam-bd-partial-cod-for-wc' ),
 				'type'    => 'checkbox',
 				/* translators: %s: method title */
-				'label'   => sprintf( __( 'Enable %s', 'aam-partial-cod' ), $this->method_title ),
+				'label'   => sprintf( __( 'Enable %s', 'aam-bd-partial-cod-for-wc' ), $this->method_title ),
 				'default' => 'no',
 			),
 			'title'       => array(
-				'title'       => __( 'Title', 'aam-partial-cod' ),
+				'title'       => __( 'Title', 'aam-bd-partial-cod-for-wc' ),
 				'type'        => 'text',
-				'description' => __( 'Payment method title shown to the customer at checkout.', 'aam-partial-cod' ),
+				'description' => __( 'Payment method title shown to the customer at checkout.', 'aam-bd-partial-cod-for-wc' ),
 				'default'     => $this->get_default_title(),
 				'desc_tip'    => true,
 			),
 			'description' => array(
-				'title'       => __( 'Description', 'aam-partial-cod' ),
+				'title'       => __( 'Description', 'aam-bd-partial-cod-for-wc' ),
 				'type'        => 'textarea',
-				'description' => __( 'Shown under the method at checkout, above the auto-generated payment notice.', 'aam-partial-cod' ),
+				'description' => __( 'Shown under the method at checkout, above the auto-generated payment notice.', 'aam-bd-partial-cod-for-wc' ),
 				'default'     => $this->get_default_description(),
 			),
 			'icon_url'    => array(
-				'title'       => __( 'Gateway icon', 'aam-partial-cod' ),
+				'title'       => __( 'Gateway icon', 'aam-bd-partial-cod-for-wc' ),
 				'type'        => 'bd_pcod_image',
-				'description' => __( 'Icon shown next to the method name at checkout and in the payment page header. Leave blank to use the bundled default icon.', 'aam-partial-cod' ),
+				'description' => __( 'Icon shown next to the method name at checkout and in the payment page header. Leave blank to use the bundled default icon.', 'aam-bd-partial-cod-for-wc' ),
 				'default'     => BD_PCOD_Helpers::default_icon( $this->id ),
 			),
 		);
@@ -128,21 +128,21 @@ abstract class BD_PCOD_Gateway_Base extends WC_Payment_Gateway {
 		// The advance calculation / label / fallback only apply when collecting a partial advance.
 		if ( ! $this->is_full_mode() ) {
 			$fields['advance_type']       = array(
-				'title'       => __( 'Advance amount based on', 'aam-partial-cod' ),
+				'title'       => __( 'Advance amount based on', 'aam-bd-partial-cod-for-wc' ),
 				'type'        => 'select',
-				'description' => __( 'How the required advance is calculated for each order.', 'aam-partial-cod' ),
+				'description' => __( 'How the required advance is calculated for each order.', 'aam-bd-partial-cod-for-wc' ),
 				'default'     => 'delivery_charge',
 				'desc_tip'    => true,
 				'options'     => array(
-					'delivery_charge' => __( 'Delivery charge (order shipping total)', 'aam-partial-cod' ),
-					'percentage'      => __( 'Percentage of the order total', 'aam-partial-cod' ),
-					'fixed'           => __( 'Fixed amount', 'aam-partial-cod' ),
+					'delivery_charge' => __( 'Delivery charge (order shipping total)', 'aam-bd-partial-cod-for-wc' ),
+					'percentage'      => __( 'Percentage of the order total', 'aam-bd-partial-cod-for-wc' ),
+					'fixed'           => __( 'Fixed amount', 'aam-bd-partial-cod-for-wc' ),
 				),
 			);
 			$fields['advance_percentage'] = array(
-				'title'             => __( 'Advance percentage (%)', 'aam-partial-cod' ),
+				'title'             => __( 'Advance percentage (%)', 'aam-bd-partial-cod-for-wc' ),
 				'type'              => 'number',
-				'description'       => __( 'Used when "Percentage of the order total" is selected. E.g. 20 charges 20% of the order total as the advance.', 'aam-partial-cod' ),
+				'description'       => __( 'Used when "Percentage of the order total" is selected. E.g. 20 charges 20% of the order total as the advance.', 'aam-bd-partial-cod-for-wc' ),
 				'default'           => '20',
 				'desc_tip'          => true,
 				'custom_attributes' => array(
@@ -152,38 +152,38 @@ abstract class BD_PCOD_Gateway_Base extends WC_Payment_Gateway {
 				),
 			);
 			$fields['advance_rounding']   = array(
-				'title'       => __( 'Round percentage to', 'aam-partial-cod' ),
+				'title'       => __( 'Round percentage to', 'aam-bd-partial-cod-for-wc' ),
 				'type'        => 'select',
-				'description' => __( 'Rounds the percentage-based advance to a tidy figure, e.g. nearest 10 turns ৳247 into ৳250.', 'aam-partial-cod' ),
+				'description' => __( 'Rounds the percentage-based advance to a tidy figure, e.g. nearest 10 turns ৳247 into ৳250.', 'aam-bd-partial-cod-for-wc' ),
 				'default'     => '1',
 				'desc_tip'    => true,
 				'options'     => array(
-					'0'   => __( 'No rounding (keep decimals)', 'aam-partial-cod' ),
-					'1'   => __( 'Nearest 1 (whole taka)', 'aam-partial-cod' ),
-					'5'   => __( 'Nearest 5', 'aam-partial-cod' ),
-					'10'  => __( 'Nearest 10', 'aam-partial-cod' ),
-					'50'  => __( 'Nearest 50', 'aam-partial-cod' ),
-					'100' => __( 'Nearest 100', 'aam-partial-cod' ),
+					'0'   => __( 'No rounding (keep decimals)', 'aam-bd-partial-cod-for-wc' ),
+					'1'   => __( 'Nearest 1 (whole taka)', 'aam-bd-partial-cod-for-wc' ),
+					'5'   => __( 'Nearest 5', 'aam-bd-partial-cod-for-wc' ),
+					'10'  => __( 'Nearest 10', 'aam-bd-partial-cod-for-wc' ),
+					'50'  => __( 'Nearest 50', 'aam-bd-partial-cod-for-wc' ),
+					'100' => __( 'Nearest 100', 'aam-bd-partial-cod-for-wc' ),
 				),
 			);
 			$fields['advance_fixed']      = array(
-				'title'       => __( 'Fixed advance amount', 'aam-partial-cod' ),
+				'title'       => __( 'Fixed advance amount', 'aam-bd-partial-cod-for-wc' ),
 				'type'        => 'price',
-				'description' => __( 'Used when "Fixed amount" is selected.', 'aam-partial-cod' ),
+				'description' => __( 'Used when "Fixed amount" is selected.', 'aam-bd-partial-cod-for-wc' ),
 				'default'     => '100',
 				'desc_tip'    => true,
 			);
 			$fields['advance_label']      = array(
-				'title'       => __( 'Advance label', 'aam-partial-cod' ),
+				'title'       => __( 'Advance label', 'aam-bd-partial-cod-for-wc' ),
 				'type'        => 'text',
-				'description' => __( 'Word used to describe the advance at checkout, e.g. "delivery charge" or "advance".', 'aam-partial-cod' ),
-				'default'     => __( 'delivery charge', 'aam-partial-cod' ),
+				'description' => __( 'Word used to describe the advance at checkout, e.g. "delivery charge" or "advance".', 'aam-bd-partial-cod-for-wc' ),
+				'default'     => __( 'delivery charge', 'aam-bd-partial-cod-for-wc' ),
 				'desc_tip'    => true,
 			);
 			$fields['fallback_advance']   = array(
-				'title'       => __( 'Fallback advance amount', 'aam-partial-cod' ),
+				'title'       => __( 'Fallback advance amount', 'aam-bd-partial-cod-for-wc' ),
 				'type'        => 'price',
-				'description' => __( 'Used whenever the calculated advance would be zero (e.g. free delivery), so the advance is never zero.', 'aam-partial-cod' ),
+				'description' => __( 'Used whenever the calculated advance would be zero (e.g. free delivery), so the advance is never zero.', 'aam-bd-partial-cod-for-wc' ),
 				'default'     => '100',
 				'desc_tip'    => true,
 			);
@@ -191,50 +191,50 @@ abstract class BD_PCOD_Gateway_Base extends WC_Payment_Gateway {
 
 		// Verification behaviour.
 		$fields['verification_section'] = array(
-			'title'       => __( 'Verification', 'aam-partial-cod' ),
+			'title'       => __( 'Verification', 'aam-bd-partial-cod-for-wc' ),
 			'type'        => 'title',
-			'description' => __( 'Control what the customer must submit as proof of payment.', 'aam-partial-cod' ),
+			'description' => __( 'Control what the customer must submit as proof of payment.', 'aam-bd-partial-cod-for-wc' ),
 		);
 		$fields['collect_trxid']        = array(
-			'title'       => __( 'Transaction ID (TrxID)', 'aam-partial-cod' ),
+			'title'       => __( 'Transaction ID (TrxID)', 'aam-bd-partial-cod-for-wc' ),
 			'type'        => 'select',
-			'description' => __( 'Ask the customer for the bKash/Nagad transaction ID when they submit payment.', 'aam-partial-cod' ),
+			'description' => __( 'Ask the customer for the bKash/Nagad transaction ID when they submit payment.', 'aam-bd-partial-cod-for-wc' ),
 			'default'     => 'off',
 			'desc_tip'    => true,
 			'options'     => array(
-				'off'      => __( 'Do not ask', 'aam-partial-cod' ),
-				'optional' => __( 'Ask (optional)', 'aam-partial-cod' ),
-				'required' => __( 'Ask (required)', 'aam-partial-cod' ),
+				'off'      => __( 'Do not ask', 'aam-bd-partial-cod-for-wc' ),
+				'optional' => __( 'Ask (optional)', 'aam-bd-partial-cod-for-wc' ),
+				'required' => __( 'Ask (required)', 'aam-bd-partial-cod-for-wc' ),
 			),
 		);
 		$fields['sender_number_mode']   = array(
-			'title'       => __( 'Sender number', 'aam-partial-cod' ),
+			'title'       => __( 'Sender number', 'aam-bd-partial-cod-for-wc' ),
 			'type'        => 'select',
-			'description' => __( 'Full requires a valid 11-digit number. Partial lets the customer confirm with just the last few digits.', 'aam-partial-cod' ),
+			'description' => __( 'Full requires a valid 11-digit number. Partial lets the customer confirm with just the last few digits.', 'aam-bd-partial-cod-for-wc' ),
 			'default'     => 'full',
 			'desc_tip'    => true,
 			'options'     => array(
-				'full'    => __( 'Require full 11-digit number', 'aam-partial-cod' ),
-				'partial' => __( 'Allow last few digits (3+)', 'aam-partial-cod' ),
+				'full'    => __( 'Require full 11-digit number', 'aam-bd-partial-cod-for-wc' ),
+				'partial' => __( 'Allow last few digits (3+)', 'aam-bd-partial-cod-for-wc' ),
 			),
 		);
 
 		// The full gateway can share the partial gateway's numbers/QR/instructions.
 		if ( $this->is_full_mode() ) {
 			$fields['methods_section']       = array(
-				'title'       => __( 'Payment numbers', 'aam-partial-cod' ),
+				'title'       => __( 'Payment numbers', 'aam-bd-partial-cod-for-wc' ),
 				'type'        => 'title',
-				'description' => __( 'Configure the numbers customers pay to — or reuse the ones already set on the AAM Partial COD gateway.', 'aam-partial-cod' ),
+				'description' => __( 'Configure the numbers customers pay to — or reuse the ones already set on the AAM Partial COD gateway.', 'aam-bd-partial-cod-for-wc' ),
 			);
 			$fields['reuse_partial_methods'] = array(
-				'title'       => __( 'Reuse numbers', 'aam-partial-cod' ),
+				'title'       => __( 'Reuse numbers', 'aam-bd-partial-cod-for-wc' ),
 				'type'        => 'select',
-				'description' => __( 'Copy once: fills the fields below from the AAM Partial COD gateway on save (you can then edit them). Always mirror: ignores the fields below and reads the partial gateway\'s numbers live, so they stay in sync automatically.', 'aam-partial-cod' ),
+				'description' => __( 'Copy once: fills the fields below from the AAM Partial COD gateway on save (you can then edit them). Always mirror: ignores the fields below and reads the partial gateway\'s numbers live, so they stay in sync automatically.', 'aam-bd-partial-cod-for-wc' ),
 				'default'     => 'off',
 				'options'     => array(
-					'off'    => __( 'Use this gateway\'s own numbers', 'aam-partial-cod' ),
-					'copy'   => __( 'Copy once from AAM Partial COD (on save)', 'aam-partial-cod' ),
-					'mirror' => __( 'Always mirror AAM Partial COD (live)', 'aam-partial-cod' ),
+					'off'    => __( 'Use this gateway\'s own numbers', 'aam-bd-partial-cod-for-wc' ),
+					'copy'   => __( 'Copy once from AAM Partial COD (on save)', 'aam-bd-partial-cod-for-wc' ),
+					'mirror' => __( 'Always mirror AAM Partial COD (live)', 'aam-bd-partial-cod-for-wc' ),
 				),
 			);
 		}
@@ -264,41 +264,41 @@ abstract class BD_PCOD_Gateway_Base extends WC_Payment_Gateway {
 			);
 			$fields[ $key . '_enabled' ]      = array(
 				/* translators: %s: method label */
-				'title'   => sprintf( __( 'Enable %s', 'aam-partial-cod' ), $label ),
+				'title'   => sprintf( __( 'Enable %s', 'aam-bd-partial-cod-for-wc' ), $label ),
 				'type'    => 'checkbox',
 				/* translators: %s: method label */
-				'label'   => sprintf( __( 'Accept payments via %s', 'aam-partial-cod' ), $label ),
+				'label'   => sprintf( __( 'Accept payments via %s', 'aam-bd-partial-cod-for-wc' ), $label ),
 				'default' => isset( $defaults_enabled[ $key ] ) ? $defaults_enabled[ $key ] : 'no',
 			);
 			$fields[ $key . '_number' ]       = array(
 				/* translators: 1: action (Send Money to / Make Payment to), 2: method label */
-				'title'       => sprintf( __( '%1$s number (%2$s)', 'aam-partial-cod' ), $action, $label ),
+				'title'       => sprintf( __( '%1$s number (%2$s)', 'aam-bd-partial-cod-for-wc' ), $action, $label ),
 				'type'        => 'text',
-				'description' => __( 'The number customers send the payment to.', 'aam-partial-cod' ),
+				'description' => __( 'The number customers send the payment to.', 'aam-bd-partial-cod-for-wc' ),
 				'placeholder' => '01XXXXXXXXX',
 				'desc_tip'    => true,
 			);
 			$fields[ $key . '_qr' ]           = array(
 				/* translators: %s: method label */
-				'title'       => sprintf( __( '%s QR image', 'aam-partial-cod' ), $label ),
+				'title'       => sprintf( __( '%s QR image', 'aam-bd-partial-cod-for-wc' ), $label ),
 				'type'        => 'bd_pcod_image',
-				'description' => __( 'Upload the QR code image for this method (optional but recommended).', 'aam-partial-cod' ),
+				'description' => __( 'Upload the QR code image for this method (optional but recommended).', 'aam-bd-partial-cod-for-wc' ),
 			);
 			$fields[ $key . '_instructions' ] = array(
 				/* translators: %s: method label */
-				'title'   => sprintf( __( '%s instructions', 'aam-partial-cod' ), $label ),
+				'title'   => sprintf( __( '%s instructions', 'aam-bd-partial-cod-for-wc' ), $label ),
 				'type'    => 'textarea',
 				/* translators: 1: action, 2: method label */
-				'default' => sprintf( __( 'Open %2$s → %1$s → enter the number above → enter the exact amount → confirm. Then submit your sender number below.', 'aam-partial-cod' ), $action, $label ),
+				'default' => sprintf( __( 'Open %2$s → %1$s → enter the number above → enter the exact amount → confirm. Then submit your sender number below.', 'aam-bd-partial-cod-for-wc' ), $action, $label ),
 			);
 		}
 
 		// Editable customer-facing texts. Each is blank by default and falls back
 		// to the mode-aware default shown as a placeholder.
 		$fields['texts_section'] = array(
-			'title'       => __( 'Texts / Labels', 'aam-partial-cod' ),
+			'title'       => __( 'Texts / Labels', 'aam-bd-partial-cod-for-wc' ),
 			'type'        => 'title',
-			'description' => __( 'Customise the wording shown to customers. Each field is pre-filled with the default — edit it directly. Use {amount} and {label} as placeholders in the checkout notice.', 'aam-partial-cod' ),
+			'description' => __( 'Customise the wording shown to customers. Each field is pre-filled with the default — edit it directly. Use {amount} and {label} as placeholders in the checkout notice.', 'aam-bd-partial-cod-for-wc' ),
 		);
 
 		foreach ( BD_PCOD_Helpers::text_fields() as $key => $field ) {
@@ -337,8 +337,8 @@ abstract class BD_PCOD_Gateway_Base extends WC_Payment_Gateway {
 			<td class="forminp">
 				<fieldset class="bd-pcod-image-field">
 					<input type="url" class="input-text regular-input bd-pcod-image-url" name="<?php echo esc_attr( $field_key ); ?>" id="<?php echo esc_attr( $field_key ); ?>" value="<?php echo esc_attr( $value ); ?>" placeholder="https://…" />
-					<button type="button" class="button bd-pcod-image-upload"><?php esc_html_e( 'Select image', 'aam-partial-cod' ); ?></button>
-					<button type="button" class="button bd-pcod-image-remove"><?php esc_html_e( 'Remove', 'aam-partial-cod' ); ?></button>
+					<button type="button" class="button bd-pcod-image-upload"><?php esc_html_e( 'Select image', 'aam-bd-partial-cod-for-wc' ); ?></button>
+					<button type="button" class="button bd-pcod-image-remove"><?php esc_html_e( 'Remove', 'aam-bd-partial-cod-for-wc' ); ?></button>
 					<p class="bd-pcod-image-preview">
 						<?php if ( $value ) : ?>
 							<img src="<?php echo esc_url( $value ); ?>" alt="" style="max-width:160px;height:auto;display:block;margin-top:8px;" />
@@ -407,7 +407,8 @@ abstract class BD_PCOD_Gateway_Base extends WC_Payment_Gateway {
 	 */
 	public function payment_fields() {
 		if ( $this->description ) {
-			echo wp_kses_post( wpautop( wp_kses_post( wptexturize( $this->description ) ) ) );
+			$description = wpautop( wptexturize( $this->description ) );
+			echo wp_kses_post( $description );
 		}
 
 		$advance = $this->get_cart_advance_amount();
@@ -415,7 +416,7 @@ abstract class BD_PCOD_Gateway_Base extends WC_Payment_Gateway {
 			return;
 		}
 
-		$label  = $this->get_option( 'advance_label', __( 'delivery charge', 'aam-partial-cod' ) );
+		$label  = $this->get_option( 'advance_label', __( 'delivery charge', 'aam-bd-partial-cod-for-wc' ) );
 		$notice = BD_PCOD_Helpers::get_text(
 			$this->id,
 			'checkout_notice',
@@ -466,7 +467,7 @@ abstract class BD_PCOD_Gateway_Base extends WC_Payment_Gateway {
 		// Keep the order pending until the customer submits proof of payment.
 		$order->update_status(
 			'pending',
-			__( 'Awaiting payment via bKash/Nagad/Rocket.', 'aam-partial-cod' )
+			__( 'Awaiting payment via bKash/Nagad/Rocket.', 'aam-bd-partial-cod-for-wc' )
 		);
 		$order->save();
 
@@ -497,8 +498,8 @@ class BD_PCOD_Gateway extends BD_PCOD_Gateway_Base {
 	public function __construct() {
 		$this->id                 = BD_PCOD_GATEWAY_ID;
 		$this->mode               = BD_PCOD_Helpers::MODE_PARTIAL;
-		$this->method_title       = __( 'AAM Partial COD (bKash/Nagad/Rocket)', 'aam-partial-cod' );
-		$this->method_description = __( 'Customers pay a partial advance (equal to the delivery charge) via bKash, Nagad, or Rocket to confirm a Cash-on-Delivery order. The remaining balance is collected as cash on delivery. You verify each advance manually.', 'aam-partial-cod' );
+		$this->method_title       = __( 'AAM Partial COD (bKash/Nagad/Rocket)', 'aam-bd-partial-cod-for-wc' );
+		$this->method_description = __( 'Customers pay a partial advance (equal to the delivery charge) via bKash, Nagad, or Rocket to confirm a Cash-on-Delivery order. The remaining balance is collected as cash on delivery. You verify each advance manually.', 'aam-bd-partial-cod-for-wc' );
 
 		parent::__construct();
 	}
