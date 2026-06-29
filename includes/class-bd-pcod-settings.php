@@ -64,7 +64,7 @@ class BD_PCOD_Settings {
 		$link = sprintf(
 			'<a href="%s">%s</a>',
 			esc_url( admin_url( 'admin.php?page=' . self::PAGE_SLUG ) ),
-			esc_html__( 'Settings', 'aam-bd-partial-cod-for-wc' )
+			esc_html__( 'Settings', 'aam-partial-cod' )
 		);
 		array_unshift( $links, $link );
 		return $links;
@@ -76,8 +76,8 @@ class BD_PCOD_Settings {
 	public function register_page() {
 		add_submenu_page(
 			'woocommerce',
-			__( 'BD COD Visibility', 'aam-bd-partial-cod-for-wc' ),
-			__( 'BD COD Visibility', 'aam-bd-partial-cod-for-wc' ),
+			__( 'BD COD Visibility', 'aam-partial-cod' ),
+			__( 'BD COD Visibility', 'aam-partial-cod' ),
 			'manage_woocommerce',
 			self::PAGE_SLUG,
 			array( $this, 'render_page' )
@@ -135,15 +135,15 @@ class BD_PCOD_Settings {
 		}
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'AAM Partial COD — Visibility', 'aam-bd-partial-cod-for-wc' ); ?></h1>
+			<h1><?php esc_html_e( 'AAM Partial COD — Visibility', 'aam-partial-cod' ); ?></h1>
 			<p class="description">
-				<?php esc_html_e( 'Choose which payment gateways and mobile-money methods this plugin exposes. Anything switched off here is removed from WooCommerce entirely — it will not appear in WooCommerce → Settings → Payments, nor at checkout.', 'aam-bd-partial-cod-for-wc' ); ?>
+				<?php esc_html_e( 'Choose which payment gateways and mobile-money methods this plugin exposes. Anything switched off here is removed from WooCommerce entirely — it will not appear in WooCommerce → Settings → Payments, nor at checkout.', 'aam-partial-cod' ); ?>
 			</p>
 
 			<form method="post" action="options.php">
 				<?php settings_fields( self::SETTINGS_GROUP ); ?>
 
-				<h2><?php esc_html_e( 'Payment gateways', 'aam-bd-partial-cod-for-wc' ); ?></h2>
+				<h2><?php esc_html_e( 'Payment gateways', 'aam-partial-cod' ); ?></h2>
 				<table class="form-table" role="presentation">
 					<tbody>
 					<?php foreach ( array_keys( BD_PCOD_Helpers::gateways() ) as $gateway_id ) : ?>
@@ -152,7 +152,7 @@ class BD_PCOD_Settings {
 							<td>
 								<label>
 									<input type="checkbox" name="<?php echo esc_attr( BD_PCOD_Helpers::OPTION_VISIBILITY . '[gateways][' . $gateway_id . ']' ); ?>" value="1" <?php checked( BD_PCOD_Helpers::is_gateway_visible( $gateway_id ) ); ?> />
-									<?php esc_html_e( 'Show this gateway', 'aam-bd-partial-cod-for-wc' ); ?>
+									<?php esc_html_e( 'Show this gateway', 'aam-partial-cod' ); ?>
 								</label>
 							</td>
 						</tr>
@@ -160,7 +160,7 @@ class BD_PCOD_Settings {
 					</tbody>
 				</table>
 
-				<h2><?php esc_html_e( 'Payment methods', 'aam-bd-partial-cod-for-wc' ); ?></h2>
+				<h2><?php esc_html_e( 'Payment methods', 'aam-partial-cod' ); ?></h2>
 				<table class="form-table" role="presentation">
 					<tbody>
 					<?php foreach ( BD_PCOD_Helpers::get_methods_config() as $method => $config ) : ?>
@@ -169,7 +169,7 @@ class BD_PCOD_Settings {
 							<td>
 								<label>
 									<input type="checkbox" name="<?php echo esc_attr( BD_PCOD_Helpers::OPTION_VISIBILITY . '[methods][' . $method . ']' ); ?>" value="1" <?php checked( BD_PCOD_Helpers::is_method_visible( $method ) ); ?> />
-									<?php esc_html_e( 'Show this method', 'aam-bd-partial-cod-for-wc' ); ?>
+									<?php esc_html_e( 'Show this method', 'aam-partial-cod' ); ?>
 								</label>
 							</td>
 						</tr>

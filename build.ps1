@@ -16,7 +16,7 @@
 $ErrorActionPreference = 'Stop'
 Set-Location -Path $PSScriptRoot
 
-$slug = 'aam-bd-partial-cod-for-wc'
+$slug = 'aam-partial-cod'
 $main = "$slug.php"
 
 if (-not (Test-Path $main)) {

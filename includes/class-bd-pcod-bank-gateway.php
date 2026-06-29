@@ -21,14 +21,14 @@ class BD_PCOD_Bank_Gateway extends WC_Payment_Gateway {
 	 */
 	public function __construct() {
 		$this->id                 = BD_PCOD_BANK_GATEWAY_ID;
-		$this->method_title       = __( 'BD Manual Bank Transfer', 'aam-bd-partial-cod-for-wc' );
-		$this->method_description = __( 'Customers transfer the full order amount to one of your bank accounts and submit their account details for verification. No API keys required.', 'aam-bd-partial-cod-for-wc' );
+		$this->method_title       = __( 'BD Manual Bank Transfer', 'aam-partial-cod' );
+		$this->method_description = __( 'Customers transfer the full order amount to one of your bank accounts and submit their account details for verification. No API keys required.', 'aam-partial-cod' );
 		$this->has_fields         = true;
 
 		$this->init_form_fields();
 		$this->init_settings();
 
-		$this->title       = $this->get_option( 'title', __( 'Bank Transfer (manual verification)', 'aam-bd-partial-cod-for-wc' ) );
+		$this->title       = $this->get_option( 'title', __( 'Bank Transfer (manual verification)', 'aam-partial-cod' ) );
 		$this->description = $this->get_option( 'description' );
 		$icon_url          = trim( (string) $this->get_option( 'icon_url', '' ) );
 		$this->icon        = ( '' !== $icon_url ) ? $icon_url : BD_PCOD_Helpers::default_icon( $this->id );
@@ -42,27 +42,27 @@ class BD_PCOD_Bank_Gateway extends WC_Payment_Gateway {
 	public function init_form_fields() {
 		$fields = array(
 			'enabled'     => array(
-				'title'   => __( 'Enable/Disable', 'aam-bd-partial-cod-for-wc' ),
+				'title'   => __( 'Enable/Disable', 'aam-partial-cod' ),
 				'type'    => 'checkbox',
-				'label'   => __( 'Enable Manual Bank Transfer', 'aam-bd-partial-cod-for-wc' ),
+				'label'   => __( 'Enable Manual Bank Transfer', 'aam-partial-cod' ),
 				'default' => 'no',
 			),
 			'title'       => array(
-				'title'       => __( 'Title', 'aam-bd-partial-cod-for-wc' ),
+				'title'       => __( 'Title', 'aam-partial-cod' ),
 				'type'        => 'text',
-				'default'     => __( 'Bank Transfer (manual verification)', 'aam-bd-partial-cod-for-wc' ),
+				'default'     => __( 'Bank Transfer (manual verification)', 'aam-partial-cod' ),
 				'desc_tip'    => true,
-				'description' => __( 'Payment method title shown to the customer at checkout.', 'aam-bd-partial-cod-for-wc' ),
+				'description' => __( 'Payment method title shown to the customer at checkout.', 'aam-partial-cod' ),
 			),
 			'description' => array(
-				'title'   => __( 'Description', 'aam-bd-partial-cod-for-wc' ),
+				'title'   => __( 'Description', 'aam-partial-cod' ),
 				'type'    => 'textarea',
-				'default' => __( 'Transfer the full order amount to our bank account and submit your details. We will confirm once the transfer is verified.', 'aam-bd-partial-cod-for-wc' ),
+				'default' => __( 'Transfer the full order amount to our bank account and submit your details. We will confirm once the transfer is verified.', 'aam-partial-cod' ),
 			),
 			'icon_url'    => array(
-				'title'       => __( 'Gateway icon URL', 'aam-bd-partial-cod-for-wc' ),
+				'title'       => __( 'Gateway icon URL', 'aam-partial-cod' ),
 				'type'        => 'text',
-				'description' => __( 'Icon shown next to the method name at checkout. Leave blank for no icon.', 'aam-bd-partial-cod-for-wc' ),
+				'description' => __( 'Icon shown next to the method name at checkout. Leave blank for no icon.', 'aam-partial-cod' ),
 				'desc_tip'    => true,
 				'default'     => '',
 				'placeholder' => 'https://…',
@@ -74,49 +74,49 @@ class BD_PCOD_Bank_Gateway extends WC_Payment_Gateway {
 			$k                     = 'bank_' . $i;
 			$fields[ $k . '_section' ] = array(
 				/* translators: %d: slot number */
-				'title' => sprintf( __( 'Bank Account %d', 'aam-bd-partial-cod-for-wc' ), $i ),
+				'title' => sprintf( __( 'Bank Account %d', 'aam-partial-cod' ), $i ),
 				'type'  => 'title',
 			);
 			$fields[ $k . '_enabled' ] = array(
-				'title'   => __( 'Enable', 'aam-bd-partial-cod-for-wc' ),
+				'title'   => __( 'Enable', 'aam-partial-cod' ),
 				'type'    => 'checkbox',
-				'label'   => __( 'Show this bank account', 'aam-bd-partial-cod-for-wc' ),
+				'label'   => __( 'Show this bank account', 'aam-partial-cod' ),
 				'default' => 'no',
 			);
 			$fields[ $k . '_name' ]    = array(
-				'title'       => __( 'Bank name', 'aam-bd-partial-cod-for-wc' ),
+				'title'       => __( 'Bank name', 'aam-partial-cod' ),
 				'type'        => 'text',
-				'placeholder' => __( 'e.g. Dutch-Bangla Bank', 'aam-bd-partial-cod-for-wc' ),
+				'placeholder' => __( 'e.g. Dutch-Bangla Bank', 'aam-partial-cod' ),
 				'default'     => '',
 			);
 			$fields[ $k . '_account_name' ]   = array(
-				'title'       => __( 'Account name', 'aam-bd-partial-cod-for-wc' ),
+				'title'       => __( 'Account name', 'aam-partial-cod' ),
 				'type'        => 'text',
-				'placeholder' => __( 'Account holder name', 'aam-bd-partial-cod-for-wc' ),
+				'placeholder' => __( 'Account holder name', 'aam-partial-cod' ),
 				'default'     => '',
 			);
 			$fields[ $k . '_account_number' ] = array(
-				'title'       => __( 'Account number', 'aam-bd-partial-cod-for-wc' ),
+				'title'       => __( 'Account number', 'aam-partial-cod' ),
 				'type'        => 'text',
 				'placeholder' => '0000000000000',
 				'default'     => '',
 			);
 			$fields[ $k . '_branch' ]  = array(
-				'title'       => __( 'Branch name', 'aam-bd-partial-cod-for-wc' ),
+				'title'       => __( 'Branch name', 'aam-partial-cod' ),
 				'type'        => 'text',
-				'placeholder' => __( 'e.g. Motijheel Branch (optional)', 'aam-bd-partial-cod-for-wc' ),
+				'placeholder' => __( 'e.g. Motijheel Branch (optional)', 'aam-partial-cod' ),
 				'default'     => '',
 			);
 			$fields[ $k . '_routing' ] = array(
-				'title'       => __( 'Routing number', 'aam-bd-partial-cod-for-wc' ),
+				'title'       => __( 'Routing number', 'aam-partial-cod' ),
 				'type'        => 'text',
-				'placeholder' => __( 'optional', 'aam-bd-partial-cod-for-wc' ),
+				'placeholder' => __( 'optional', 'aam-partial-cod' ),
 				'default'     => '',
 			);
 			$fields[ $k . '_phone' ]   = array(
-				'title'       => __( 'Phone / contact', 'aam-bd-partial-cod-for-wc' ),
+				'title'       => __( 'Phone / contact', 'aam-partial-cod' ),
 				'type'        => 'text',
-				'placeholder' => __( 'optional', 'aam-bd-partial-cod-for-wc' ),
+				'placeholder' => __( 'optional', 'aam-partial-cod' ),
 				'default'     => '',
 			);
 		}
@@ -151,7 +151,7 @@ class BD_PCOD_Bank_Gateway extends WC_Payment_Gateway {
 				wp_kses(
 					sprintf(
 						/* translators: %s: formatted price */
-						__( 'Transfer <strong>%s</strong> via bank transfer to confirm your order.', 'aam-bd-partial-cod-for-wc' ),
+						__( 'Transfer <strong>%s</strong> via bank transfer to confirm your order.', 'aam-partial-cod' ),
 						wc_price( $total )
 					),
 					array( 'strong' => array(), 'span' => array( 'class' => array() ) )
@@ -167,13 +167,17 @@ class BD_PCOD_Bank_Gateway extends WC_Payment_Gateway {
 	 * @return array
 	 */
 	public function process_payment( $order_id ) {
-		$order   = wc_get_order( $order_id );
+		$order = wc_get_order( $order_id );
+		if ( ! $order ) {
+			return array( 'result' => 'failure' );
+		}
+
 		$advance = round( (float) $order->get_total(), wc_get_price_decimals() );
 
 		$order->update_meta_data( BD_PCOD_Helpers::META_ADVANCE, $advance );
 		$order->update_meta_data( BD_PCOD_Helpers::META_REMAINING, 0 );
 		$order->update_meta_data( BD_PCOD_Helpers::META_STATUS, BD_PCOD_Helpers::STATUS_AWAITING );
-		$order->update_status( 'pending', __( 'Awaiting bank transfer confirmation.', 'aam-bd-partial-cod-for-wc' ) );
+		$order->update_status( 'pending', __( 'Awaiting bank transfer confirmation.', 'aam-partial-cod' ) );
 		$order->save();
 
 		wc_reduce_stock_levels( $order_id );

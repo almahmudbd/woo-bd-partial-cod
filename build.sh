@@ -12,7 +12,7 @@
 #
 set -euo pipefail
 
-SLUG="woo-bd-partial-cod"
+SLUG="aam-partial-cod"
 MAIN="$SLUG.php"
 
 cd "$(dirname "$0")"
@@ -31,7 +31,7 @@ STAGE="$BUILD_DIR/$SLUG"
 ZIP="$SLUG-$VERSION.zip"
 
 # The actual plugin payload — anything not listed here is left out of the ZIP.
-INCLUDE=( "$MAIN" "README.md" "includes" "assets" "templates" )
+INCLUDE=( "$MAIN" "readme.txt" "README.md" "license.txt" "includes" "assets" "templates" )
 [ -d languages ] && INCLUDE+=( "languages" )
 
 echo "📦 Building $ZIP (version $VERSION)…"

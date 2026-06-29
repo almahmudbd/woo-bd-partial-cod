@@ -3,7 +3,7 @@ Contributors: almahmudbd
 Tags: woocommerce, payment gateway, bkash, nagad, partial payment
 Requires at least: 6.0
 Tested up to: 7.0
-Stable tag: 1.5.6
+Stable tag: 1.5.7
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -81,12 +81,15 @@ The plugin targets the classic (shortcode) checkout. Block (Store API) support i
 
 == Changelog ==
 
+= 1.5.7 =
+* Text domain updated to match the assigned plugin slug (aam-partial-cod).
+
 = 1.5.6 =
 * Standalone payment pages now register their CSS/JS through wp_enqueue_style()/wp_enqueue_script() instead of hard-coded tags.
 * Fixed the Plugin URI and trimmed the tag list for WordPress.org compliance.
 
 = 1.5.4 =
-* WordPress.org submission: renamed slug to aam-bd-partial-cod-for-wc, updated plugin name, added Requires Plugins header.
+* WordPress.org submission: renamed slug to aam-partial-cod, updated plugin name, added Requires Plugins header.
 
 = 1.5.3 =
 * Default gateway icons are now bundled with the plugin (cod-icon.png for partial COD, desi-gateways.jpg for full payment).

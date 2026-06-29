@@ -68,8 +68,8 @@ class BD_PCOD_Payment_Page {
 
 		if ( ! $order || ! BD_PCOD_Helpers::is_our_order( $order ) || ! hash_equals( $order->get_order_key(), $order_key ) ) {
 			wp_die(
-				esc_html__( 'This payment link is invalid or has expired.', 'aam-bd-partial-cod-for-wc' ),
-				esc_html__( 'Payment error', 'aam-bd-partial-cod-for-wc' ),
+				esc_html__( 'This payment link is invalid or has expired.', 'aam-partial-cod' ),
+				esc_html__( 'Payment error', 'aam-partial-cod' ),
 				array( 'response' => 403 )
 			);
 		}
@@ -98,11 +98,11 @@ class BD_PCOD_Payment_Page {
 					'ajaxUrl'        => admin_url( 'admin-ajax.php' ),
 					'nonce'          => $nonce,
 					'action'         => 'bd_pcod_bank_submit',
-					'copied'         => __( 'Copied!', 'aam-bd-partial-cod-for-wc' ),
-					'copy'           => __( 'Copy', 'aam-bd-partial-cod-for-wc' ),
-					'required'       => __( 'Please select a bank and enter your account number.', 'aam-bd-partial-cod-for-wc' ),
-					'invalidAccount' => __( 'Please enter at least the last 4 digits of your account number.', 'aam-bd-partial-cod-for-wc' ),
-					'leaveWarning'   => __( 'You have not completed your payment yet. If you leave now, your order will stay unconfirmed.', 'aam-bd-partial-cod-for-wc' ),
+					'copied'         => __( 'Copied!', 'aam-partial-cod' ),
+					'copy'           => __( 'Copy', 'aam-partial-cod' ),
+					'required'       => __( 'Please select a bank and enter your account number.', 'aam-partial-cod' ),
+					'invalidAccount' => __( 'Please enter at least the last 4 digits of your account number.', 'aam-partial-cod' ),
+					'leaveWarning'   => __( 'You have not completed your payment yet. If you leave now, your order will stay unconfirmed.', 'aam-partial-cod' ),
 				)
 			);
 
@@ -137,15 +137,15 @@ class BD_PCOD_Payment_Page {
 			array(
 				'ajaxUrl'       => admin_url( 'admin-ajax.php' ),
 				'nonce'         => $nonce,
-				'copied'        => __( 'Copied!', 'aam-bd-partial-cod-for-wc' ),
-				'copy'          => __( 'Copy', 'aam-bd-partial-cod-for-wc' ),
+				'copied'        => __( 'Copied!', 'aam-partial-cod' ),
+				'copy'          => __( 'Copy', 'aam-partial-cod' ),
 				'senderMode'    => $sender_mode,
 				'trxidMode'     => $collect_trxid,
-				'invalidPhone'  => __( 'Please enter a valid 11-digit mobile number (e.g. 01XXXXXXXXX).', 'aam-bd-partial-cod-for-wc' ),
-				'invalidDigits' => __( 'Please enter at least the last 3 digits of your sender number.', 'aam-bd-partial-cod-for-wc' ),
-				'requiredTrxid' => __( 'Please enter the transaction ID (TrxID).', 'aam-bd-partial-cod-for-wc' ),
-				'required'      => __( 'Please fill in all required fields.', 'aam-bd-partial-cod-for-wc' ),
-				'leaveWarning'  => __( 'You have not completed your payment yet. If you leave now, your order will stay unconfirmed.', 'aam-bd-partial-cod-for-wc' ),
+				'invalidPhone'  => __( 'Please enter a valid 11-digit mobile number (e.g. 01XXXXXXXXX).', 'aam-partial-cod' ),
+				'invalidDigits' => __( 'Please enter at least the last 3 digits of your sender number.', 'aam-partial-cod' ),
+				'requiredTrxid' => __( 'Please enter the transaction ID (TrxID).', 'aam-partial-cod' ),
+				'required'      => __( 'Please fill in all required fields.', 'aam-partial-cod' ),
+				'leaveWarning'  => __( 'You have not completed your payment yet. If you leave now, your order will stay unconfirmed.', 'aam-partial-cod' ),
 			)
 		);
 
@@ -239,7 +239,7 @@ class BD_PCOD_Payment_Page {
 		if ( $plain_text ) {
 			$line = sprintf(
 				/* translators: 1: amount, 2: url */
-				__( 'Please pay %1$s to confirm your order, then submit your payment details here: %2$s', 'aam-bd-partial-cod-for-wc' ),
+				__( 'Please pay %1$s to confirm your order, then submit your payment details here: %2$s', 'aam-partial-cod' ),
 				$advance,
 				$url
 			);
@@ -250,7 +250,7 @@ class BD_PCOD_Payment_Page {
 		echo '<div style="margin:0 0 24px;padding:12px 16px;border:1px solid #e0a800;background:#fff8e5;border-radius:6px;">';
 		printf(
 			/* translators: 1: amount, 2: url */
-			wp_kses_post( __( 'Please pay <strong>%1$s</strong> to confirm your order, then <a href="%2$s">submit your payment details here</a>.', 'aam-bd-partial-cod-for-wc' ) ),
+			wp_kses_post( __( 'Please pay <strong>%1$s</strong> to confirm your order, then <a href="%2$s">submit your payment details here</a>.', 'aam-partial-cod' ) ),
 			wp_kses_post( $advance ),
 			esc_url( $url )
 		);
@@ -273,7 +273,7 @@ class BD_PCOD_Payment_Page {
 
 		// Validate ownership via the order key (the customer may be a guest).
 		if ( ! $order || ! BD_PCOD_Helpers::is_our_order( $order ) || ! hash_equals( $order->get_order_key(), $order_key ) ) {
-			wp_send_json_error( array( 'message' => __( 'Order not found or access denied.', 'aam-bd-partial-cod-for-wc' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Order not found or access denied.', 'aam-partial-cod' ) ), 403 );
 		}
 
 		// Idempotency: if already submitted/verified, don't overwrite.
@@ -281,7 +281,7 @@ class BD_PCOD_Payment_Page {
 		if ( in_array( $current, array( BD_PCOD_Helpers::STATUS_SUBMITTED, BD_PCOD_Helpers::STATUS_VERIFIED ), true ) ) {
 			wp_send_json_success(
 				array(
-					'message'   => __( 'Your payment details have already been submitted and are awaiting verification.', 'aam-bd-partial-cod-for-wc' ),
+					'message'   => __( 'Your payment details have already been submitted and are awaiting verification.', 'aam-partial-cod' ),
 					'submitted' => true,
 					'redirect'  => $order->get_checkout_order_received_url(),
 				)
@@ -292,15 +292,15 @@ class BD_PCOD_Payment_Page {
 
 		$methods = BD_PCOD_Helpers::get_enabled_methods( $gateway_id );
 		if ( ! isset( $methods[ $method ] ) ) {
-			wp_send_json_error( array( 'message' => __( 'Please choose a valid payment method.', 'aam-bd-partial-cod-for-wc' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'Please choose a valid payment method.', 'aam-partial-cod' ) ), 400 );
 		}
 
 		$sender_mode = BD_PCOD_Helpers::get_setting( $gateway_id, 'sender_number_mode', 'full' );
 		$sender      = BD_PCOD_Helpers::sanitize_sender_number( $sender, $sender_mode );
 		if ( false === $sender ) {
 			$message = ( 'partial' === $sender_mode )
-				? __( 'Please enter at least the last 3 digits of your sender number.', 'aam-bd-partial-cod-for-wc' )
-				: __( 'Please enter a valid 11-digit mobile number (e.g. 01XXXXXXXXX).', 'aam-bd-partial-cod-for-wc' );
+				? __( 'Please enter at least the last 3 digits of your sender number.', 'aam-partial-cod' )
+				: __( 'Please enter a valid 11-digit mobile number (e.g. 01XXXXXXXXX).', 'aam-partial-cod' );
 			wp_send_json_error( array( 'message' => $message ), 400 );
 		}
 
@@ -308,7 +308,7 @@ class BD_PCOD_Payment_Page {
 		$collect_trxid = BD_PCOD_Helpers::get_setting( $gateway_id, 'collect_trxid', 'off' );
 		$trxid         = ( 'off' === $collect_trxid ) ? '' : $trxid_raw;
 		if ( 'required' === $collect_trxid && '' === $trxid ) {
-			wp_send_json_error( array( 'message' => __( 'Please enter the transaction ID (TrxID).', 'aam-bd-partial-cod-for-wc' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'Please enter the transaction ID (TrxID).', 'aam-partial-cod' ) ), 400 );
 		}
 
 		// Persist the submission.
@@ -322,11 +322,11 @@ class BD_PCOD_Payment_Page {
 		$order->add_order_note(
 			sprintf(
 				/* translators: 1: method, 2: sender number, 3: amount, 4: trxid suffix */
-				__( 'Customer submitted payment: %1$s, sender %2$s, amount %3$s%4$s. Awaiting verification.', 'aam-bd-partial-cod-for-wc' ),
+				__( 'Customer submitted payment: %1$s, sender %2$s, amount %3$s%4$s. Awaiting verification.', 'aam-partial-cod' ),
 				BD_PCOD_Helpers::method_label( $method ),
 				$sender,
 				wc_price( (float) $order->get_meta( BD_PCOD_Helpers::META_ADVANCE ) ),
-				'' !== $trxid ? sprintf( /* translators: %s: transaction id */ __( ', TrxID %s', 'aam-bd-partial-cod-for-wc' ), $trxid ) : ''
+				'' !== $trxid ? sprintf( /* translators: %s: transaction id */ __( ', TrxID %s', 'aam-partial-cod' ), $trxid ) : ''
 			)
 		);
 
@@ -336,7 +336,7 @@ class BD_PCOD_Payment_Page {
 
 		wp_send_json_success(
 			array(
-				'message'   => __( 'Thank you! Your payment details have been submitted and are awaiting verification. We will confirm your order shortly.', 'aam-bd-partial-cod-for-wc' ),
+				'message'   => __( 'Thank you! Your payment details have been submitted and are awaiting verification. We will confirm your order shortly.', 'aam-partial-cod' ),
 				'submitted' => true,
 				'redirect'  => $order->get_checkout_order_received_url(),
 			)
@@ -356,7 +356,7 @@ class BD_PCOD_Payment_Page {
 
 		$order = $order_id ? wc_get_order( $order_id ) : false;
 		if ( ! $order || $order->get_payment_method() !== BD_PCOD_BANK_GATEWAY_ID || ! hash_equals( $order->get_order_key(), $order_key ) ) {
-			wp_send_json_error( array( 'message' => __( 'Order not found or access denied.', 'aam-bd-partial-cod-for-wc' ) ), 403 );
+			wp_send_json_error( array( 'message' => __( 'Order not found or access denied.', 'aam-partial-cod' ) ), 403 );
 		}
 
 		$current = $order->get_meta( BD_PCOD_Helpers::META_STATUS );
@@ -366,12 +366,12 @@ class BD_PCOD_Payment_Page {
 
 		$banks = BD_PCOD_Helpers::get_enabled_banks();
 		if ( ! isset( $banks[ $bank ] ) ) {
-			wp_send_json_error( array( 'message' => __( 'Please select a valid bank.', 'aam-bd-partial-cod-for-wc' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'Please select a valid bank.', 'aam-partial-cod' ) ), 400 );
 		}
 
 		$acct = BD_PCOD_Helpers::sanitize_bank_account( $acct_raw );
 		if ( false === $acct ) {
-			wp_send_json_error( array( 'message' => __( 'Please enter at least the last 4 digits of your account number.', 'aam-bd-partial-cod-for-wc' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'Please enter at least the last 4 digits of your account number.', 'aam-partial-cod' ) ), 400 );
 		}
 
 		$order->update_meta_data( BD_PCOD_Helpers::META_METHOD, $bank );
@@ -380,7 +380,7 @@ class BD_PCOD_Payment_Page {
 		$order->add_order_note(
 			sprintf(
 				/* translators: 1: bank name, 2: account digits, 3: amount */
-				__( 'Customer submitted bank transfer: %1$s, account ending %2$s, amount %3$s. Awaiting verification.', 'aam-bd-partial-cod-for-wc' ),
+				__( 'Customer submitted bank transfer: %1$s, account ending %2$s, amount %3$s. Awaiting verification.', 'aam-partial-cod' ),
 				$banks[ $bank ]['name'],
 				$acct,
 				wc_price( (float) $order->get_meta( BD_PCOD_Helpers::META_ADVANCE ) )
@@ -390,7 +390,7 @@ class BD_PCOD_Payment_Page {
 		$order->save();
 
 		wp_send_json_success( array(
-			'message'   => __( 'Thank you! Your transfer details have been submitted and are awaiting verification.', 'aam-bd-partial-cod-for-wc' ),
+			'message'   => __( 'Thank you! Your transfer details have been submitted and are awaiting verification.', 'aam-partial-cod' ),
 			'submitted' => true,
 			'redirect'  => $order->get_checkout_order_received_url(),
 		) );
@@ -425,13 +425,13 @@ class BD_PCOD_Payment_Page {
 	}
 
 	/**
-	 * Load a template file, allowing theme overrides via woocommerce/aam-bd-partial-cod-for-wc/.
+	 * Load a template file, allowing theme overrides via woocommerce/aam-partial-cod/.
 	 *
 	 * @param string $template Template filename.
 	 * @param array  $context  Variables to expose to the template.
 	 */
 	protected function load_template( $template, $context = array() ) {
-		$override = locate_template( array( 'woocommerce/aam-bd-partial-cod-for-wc/' . $template ) );
+		$override = locate_template( array( 'woocommerce/aam-partial-cod/' . $template ) );
 		$path     = $override ? $override : BD_PCOD_PATH . 'templates/' . $template;
 
 		if ( ! file_exists( $path ) ) {
